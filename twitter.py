@@ -92,7 +92,7 @@ def get_original_tweet_data(apiObject, tweetID):
 
 	originalTweetData = {}
 	if str(tweetID) != 'None':
-		apiObject.originalCount += 1
+		# apiObject.original.increment()
 		# print("getting original tweet data for: ", tweetID)
 		try:
 			originalTweet = api.get_status(tweetID)
@@ -129,10 +129,12 @@ def get_original_tweet_data(apiObject, tweetID):
 		# raise Exception('dont need to count this')
 
 
-def get_retweet_info(api, tweetID, num):
+def get_retweet_info(apiObject, tweetID, num):
+	# apiObject.api.original.increment()
+    
     retweetInfo = {}
     print("getting retweets for" + str(tweetID))
-    retweets = api.retweets(tweetID, count=100)
+    retweets = apiObject.api.retweets(tweetID, count=100)
 
     retweetsFormated = []
     for retweet in retweets:
