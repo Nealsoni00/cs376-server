@@ -31,7 +31,7 @@ def get_all_tweets(screen_name, getAll, api):
 	alltweets = []
 
 	#make initial request for most recent tweets (200 is the maximum allowed count at each interval)
-	new_tweets = api1.user_timeline(screen_name = screen_name,count=30, include_entities=True, tweet_mode='extended')
+	new_tweets = api1.user_timeline(screen_name = screen_name,count=5, include_entities=True, tweet_mode='extended')
 
 	#save most recent tweets
 	alltweets.extend(new_tweets)
@@ -127,7 +127,7 @@ def analyse(screen_name, alltweets, apis):
 		#If the tweet is in response to another tweet, get that original tweet.
 		data = processTweet(tweet, apis, analyzer)
 		allData[tweet.id_str] = data
-		for i in range(0,50):
+		for i in range(0,200):
 			allData[tweet.id_str + str(i)] = data
 		# print(data)
 	return allData

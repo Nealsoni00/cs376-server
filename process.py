@@ -85,7 +85,7 @@ def chunkIt(seq, num):
 
 def postProcess(allTweets, userinfo):
 	outputJSON = {}
-	
+
 	count = 0
 	likes = []
 	likesWithImages  = []
@@ -105,9 +105,11 @@ def postProcess(allTweets, userinfo):
 	negativeTweets = 0
 	neutralTweets = 0
 	positiveTweets = 0
-
-	for tweet in allTweets:
-		# print(count, tweet)
+	tweetsArray = []
+	for i in allTweets:
+		tweet = allTweets[i];
+		tweetsArray.append(tweet)
+		print(count, tweet)
 		likes.append(int(tweet["likes"]))
 		retweets.append(int(tweet["retweets"]))
 		# print(tweet["originalTweetData"])
@@ -181,9 +183,8 @@ def postProcess(allTweets, userinfo):
 	outputJSON["sentiment"] = sentimentRatio
 
 
-
-	allTweets.sort(key=lambda x: int(x["likes"]), reverse=True)
-	topFiveTweets = allTweets[:5]
+	tweetsArray.sort(key=lambda x: int(x["likes"]), reverse=True)
+	topFiveTweets = tweetsArray[:5]
 	outputJSON["topFiveTweets"] = topFiveTweets
 	print(topFiveTweets)
 
@@ -262,9 +263,9 @@ def postProcess(allTweets, userinfo):
 	outputJSON["no_likes_percent"] = round(tweetsWithNoLikes/count, 5)
 	outputJSON["no_likes_count"] = round(tweetsWithNoLikes, 5)
 
-	allTweets.sort(key=lambda x: int(x["likes"]), reverse=True)
+	tweetsArray.sort(key=lambda x: int(x["likes"]), reverse=True)
 	fivePercent = int(count*0.05)
-	topFivePercentofTweets = allTweets[:fivePercent]
+	topFivePercentofTweets = tweetsArray[:fivePercent]
 	# print(topFiveTweets["image"])
 	countOfImagesInTopFivePercent = 0
 	for tweet in topFivePercentofTweets:
@@ -385,6 +386,7 @@ def makeHistogram(name, data, x_axis, y_axis, title, path):
 	plt.tight_layout()
 	box_inches="tight" #removes all the extra whitespace on the edges of your plot.
 	print(path + screen_name + "_" + name + '.pdf')
+	
 	plt.savefig(path + screen_name + "_" + name + '.pdf')
 	# plt.show()
 	return name + '.pdf'
