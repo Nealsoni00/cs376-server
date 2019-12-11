@@ -92,7 +92,7 @@ def postProcess(screen_name, allTweets, userinfo):
 	likesForRetweet  = []
 	likesForOriginal = []
 
-
+	hashtags = []
 	retweets = []
 	tweetRespondedTo = []
 	colors = []
@@ -157,13 +157,16 @@ def postProcess(screen_name, allTweets, userinfo):
 		if int(tweet["likes"]) == 0:
 			tweetsWithNoLikes += 1
 		count += 1
+		if tweet['hashtags']:
+			for hashtag in tweet['hashtags']
+				hashtag.append(hashtag)
 
 	print("count of colors: ", len(colors))
 	outputJSON["colorCount"] = len(colors)
 
 	# imageName = createImagePallete(colors)
 	# outputJSON["colorImage"] = imageName
-
+	outputJSON['hashtags'] = hashtags
 
 	print("there are " + str(count) + " tweets")
 	outputJSON["tweetCount"] = str(count)
@@ -200,7 +203,7 @@ def postProcess(screen_name, allTweets, userinfo):
 	topFiveRespondingTo = tweetRespondedToUsersKeys[:5]
 	topFiveReversed = topFiveRespondingTo[::-1]
 	print("top five people responded to: ", topFiveRespondingTo)
-	outputJSON["topFiveRespondedTo"] = topFiveRespondingTo
+	outputJSON["top_five_responded_to"] = topFiveRespondingTo
 
 
 	html = makeHistogram("likes_histogram", likes, "likes per post", "# of posts in range", "Histogram of likes for "+screen_name+" tweets")
@@ -222,7 +225,8 @@ def postProcess(screen_name, allTweets, userinfo):
 		'Responses (#)',
 		'Account (user name)',
 		"Top 5 Accounts Responded To")
-	outputJSON["top_5_accounts_respoded_to"] = html
+	outputJSON["top_five_responded_to_graph"] = html
+	outputJSON["top_five_responded_to_data"] = {labels: topFiveReversed, data: [tweetRespondedToUsers[x][0] for x in topFiveReversed]}
 	# createHorizontalDoubleBarGraph(
 	# 	"RespondedMost2",
 	# 	topFiveReversed,
@@ -270,7 +274,7 @@ def postProcess(screen_name, allTweets, userinfo):
 		if tweet["images"] != '[]':
 			countOfImagesInTopFivePercent += 1
 
-	outputJSON['top5%'] = round(countOfImagesInTopFivePercent/fivePercent, 5)
+	outputJSON['top5%'] = round(countOfImagesInTopFivePercent/(fivePercent + 1), 5)
 	print("out of the top 5% of the tweets,",outputJSON['top5%'], "had images")
 
 	outputJSON['median_likes'] = round(likes[int(count/2)])
@@ -285,7 +289,7 @@ def postProcess(screen_name, allTweets, userinfo):
 	print("Median retweets: ", round(retweets[int(count/2)]))
 	outputJSON['median_retweets'] = round(retweets[int(count/2)])
 
-	print("% of posts with images: ", round(tweetsWithImages/count,5))
+	print("% of posts with images: ", round(tweetsWithImages/(count + 1),5))
 	outputJSON['PercentPostsWithImages'] = round(tweetsWithImages/count,5)
 
 	print("(responded tweets : self posted tweets) ratio: ", round(responseCount/(count - responseCount + 1),5))
