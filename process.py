@@ -17,6 +17,7 @@ from math import ceil, log10
 from matplotlib import rcParams
 from colorconverter import hsv2rgb, rgb2hsv
 from graphs import *
+import firestore
 imgurID = '44dc4e7f6a501c1'
 imgurSecret = 'aa1c760cc685c9438cf5de53bc4e5e7cf800ba09'
 
@@ -83,7 +84,7 @@ def chunkIt(seq, num):
 
 	return out
 
-def postProcess(allTweets, userinfo):
+def postProcess(screen_name, allTweets, userinfo):
 	outputJSON = {}
 
 	count = 0
@@ -109,7 +110,7 @@ def postProcess(allTweets, userinfo):
 	for i in allTweets:
 		tweet = allTweets[i];
 		tweetsArray.append(tweet)
-		print(count, tweet)
+		# print(count, tweet)
 		likes.append(int(tweet["likes"]))
 		retweets.append(int(tweet["retweets"]))
 		# print(tweet["originalTweetData"])
@@ -392,3 +393,9 @@ def makeHistogram(name, data, x_axis, y_axis, title, path):
 	return name + '.pdf'
 
 	# computingScores(userinfo, getVaderAnalysis(screen_name))
+
+def getAccountInfo(screen_name):
+	allTweets = firestore.getTweets(screen_name)
+	userinfo = firestore.getInfo(screen_name)
+	postProcess(screen_name, allTweets, userinfo)
+
