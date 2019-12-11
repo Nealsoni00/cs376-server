@@ -57,21 +57,22 @@ def processTweet(tweet, api, analyzer):
 	print("PROCESSING TWEET: ", tweet.id_str)
 	originalTweetData = {}
 	# ************* GET ORIGINAL TWEET DATA ************************
-	try:
+	if ('in_reply_to_status_id' in tweet._json):
 		if str(tweet.in_reply_to_status_id) != 'None':
-			print("GET ORIGINAL")
-			if (api.validOriginalAPI()):
-				print("HERE1")
-				api.currAPI().original.increment()
-				originalTweetData = twitter.get_original_tweet_data(api.apis[currAPINum], tweet.in_reply_to_status_id)
-				print("got original data for tweet. ", tweet.in_reply_to_status_id, api.apis[currAPINum].originalCount)
-			else:
-				print("HERE2")
-				timeout = api.originalTimeout()
-				print("sleeping for " + str(timeout))
-				time.sleep(timeout)
-	except:
-		print("*******************Request failed for original tweet data *****************")
+			# try:
+				print("GETING ORIGINAL")
+				if (api.validOriginalAPI()):
+					print("____ HERE ORIGINAL 1")
+					api.currAPI().original.increment()
+					originalTweetData = twitter.get_original_tweet_data(api.apis[api.currAPI], tweet.in_reply_to_status_id)
+					print("got original data for tweet. ", tweet.in_reply_to_status_id, api.apis[currAPINum].originalCount)
+				else:
+					print("____ HERE2")
+					timeout = api.originalTimeout()
+					print("sleeping for " + str(timeout))
+					time.sleep(timeout)
+			# except:
+			# 	print("*******************Request failed for original tweet data *****************")
 
 	# print(originalTweetData)
 	# ************* GET TOP RETWEETS OF TWEET ************************
@@ -80,7 +81,7 @@ def processTweet(tweet, api, analyzer):
 		print("GET RETWEETS")
 		if (api.validRetweetAPI()):
 			api.currAPI().retweets.increment()
-			topRetweets = twitter.get_retweet_info(api.apis[currTweetImagesAPI % len(api.apis)], tweet.id_str, 5)
+			topRetweets = twitter.get_retweet_info(api.apis[api.currAPI], tweet.id_str, 5)
 		else:
 			timeout = api.retweetTimeout()
 			print("sleeping for " + str(timeout))
@@ -92,12 +93,12 @@ def processTweet(tweet, api, analyzer):
 	imageInfo = []
 	tweetImages = []
 	tweetColors = []
-	# try:
-	# 	imageInfo = twitter.get_tweet_image_info(tweet)
-	# 	tweetImages = imageInfo[0]
-	# 	tweetColors = imageInfo[1]
-	# except:
-	# 	print("*******************Request failed for tweet images *****************")
+	try:
+		imageInfo = twitter.get_tweet_image_info(tweet)
+		tweetImages = imageInfo[0]
+		tweetColors = imageInfo[1]
+	except:
+		print("*******************Request failed for tweet images *****************")
 
 	# ******************** GET TWEET SENTEMENT ANALYSIS ************************
 	tweettext = ""
@@ -157,13 +158,20 @@ class Endpoint:
 				return True
 		else:
 			return True
-	def timeout():
-		return timedelta(minutes = 15) - (datetime.now() - self.start)
+	
+	def printf(self):
+		print("Endpoint", self.name, self.count, self.limit, self.start, self.timeout)
+	
+	def calcTimeout(self):
+		# print("HERE TIMEOUT")
+		timeoutDelta = (timedelta(minutes = 15) - (datetime.now() - self.start)).total_seconds()
+		print('timeoutDelta', timeoutDelta)
+		return timeoutDelta
 class API:
 	def __init__(self, api):
 		self.api = api
-		self.original = Endpoint('original', 0, 300, datetime.now(), 15)
-		self.retweets = Endpoint('retweets', 0, 300, datetime.now(), 15)
+		self.original = Endpoint('original', 0, 300, datetime.now(), 15*60)
+		self.retweets = Endpoint('retweets', 0, 300, datetime.now(), 15*60)
 
 class apiObject:
 	def __init__(self, apis):
@@ -177,32 +185,39 @@ class apiObject:
 	def validOriginalAPI(self):
 		print("HERE VALID")
 		for i in range(0, self.count):
-			if (self.apis[i].original.timeout() < 0):
+			# print('___', i, self.apis[i].original)
+			self.apis[i].original.printf()
+			
+			timeout = self.apis[i].original.calcTimeout()
+			print('*___', i, timeout )
+			if timeout < 0:
 				currAPI = i
 				return True
 		return False
+	
 	def originalTimeout(self):
-		minTimeout = 15
+		minTimeout = 15*60
 		for i in range(0, self.count):
-			timeout = self.apis[i].original.timeout()
-			if (timeout < minTimeout):
+			timeout = self.apis[i].original.calcTimeout()
+			if timeout < minTimeout:
 				minTimeout = timeout
 		return minTimeout
 
 	def validRetweetAPI(self):
 		for i in range(0, self.count):
-			if (self.apis[i].retweets.timeout() < 0):
+			if self.apis[i].retweets.calcTimeout() < 0:
 				currAPI = i
 				return True
 		return False
 	
 	def retweetTimeout(self):
-		minTimeout = 15
+		minTimeout = 900
 		for i in range(0, self.count):
-			timeout = self.apis[i].retweets.timeout()
-			if (timeout < minTimeout):
+			timeout = self.apis[i].retweets.calcTimeout()
+			if timeout < minTimeout:
 				minTimeout = timeout
 		return minTimeout
+	
 	def printAPI(self):
 		for i in range(0, self.count):
 			print("API", i, self.apis[i].original.count, self.apis[i].retweets.count)
@@ -233,4 +248,5 @@ def getAccountData(screen_name, getAll = True):
 
 	alltweets = get_all_tweets(screen_name, getAll, api)
 	allData = analyse(screen_name, alltweets, api)
+	# firestore.saveTweetData(screen_name, allData)
 	# print(allData)
