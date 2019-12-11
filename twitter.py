@@ -69,11 +69,11 @@ def get_tweet_image_info(tweet):
 			img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 			im_pil = Image.fromarray(img)
 
-			cv2.imwrite(absolute_path_to_images + tweet.id_str + '.png',img)
+			# cv2.imwrite(absolute_path_to_images + tweet.id_str + '.png',img)
 				# cv2.imshow("Image", img)
 
 			#Color Analysis:
-			colors = colorgram.extract(absolute_path_to_images + tweet.id_str + '.png', 6);
+			colors = colorgram.extract(im_pil, 6);
 			colors.sort(key=lambda c: c.hsl.h)
 			colorsArray = []
 			for color in colors:
@@ -83,6 +83,7 @@ def get_tweet_image_info(tweet):
 				colorTemp["b"] = color.rgb.b
 				colorsArray.append(colorTemp)
 			tweetColors.append(colorsArray)
+			print(colorsArray)
 	return [tweetImages, tweetColors]
 
 def get_original_tweet_data(apiObject, tweetID, analyzer):
