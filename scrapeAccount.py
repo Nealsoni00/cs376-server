@@ -4,6 +4,7 @@ import sys
 
 if __name__ == '__main__':
     #pass in the username of the account you want to download
-    process.getAccountInfo('elonmusk')
-   	# for i in range(1,len(sys.argv)):
+    # 
+   	for i in range(1,len(sys.argv)):
+   		process.getAccountInfo(sys.argv[i])
    	# 	allData = scraper.getAccountData(sys.argv[i], True)
