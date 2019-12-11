@@ -61,11 +61,15 @@ def get_tweet_image_info(tweet):
 			url = image['media_url']
 			tweetImages.append(url)
 
-			if not os.path.isfile(absolute_path_to_images + tweet.id_str + '.png'): #if the file already exists, then dont download it again, just load the old one.
-				resp = urllib.request.urlopen(url)
-				img = np.asarray(bytearray(resp.read()), dtype="uint8")
-				img = cv2.imdecode(img, cv2.IMREAD_COLOR)
-				cv2.imwrite(absolute_path_to_images + tweet.id_str + '.png',img)
+			# if not os.path.isfile(absolute_path_to_images + tweet.id_str + '.png'): #if the file already exists, then dont download it again, just load the old one.
+			resp = urllib.request.urlopen(url)
+			img = np.asarray(bytearray(resp.read()), dtype="uint8")
+			img = cv2.imdecode(img, cv2.IMREAD_COLOR)
+
+			img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+			im_pil = Image.fromarray(img)
+
+			cv2.imwrite(absolute_path_to_images + tweet.id_str + '.png',img)
 				# cv2.imshow("Image", img)
 
 			#Color Analysis:
