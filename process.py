@@ -18,8 +18,7 @@ from matplotlib import rcParams
 from colorconverter import hsv2rgb, rgb2hsv
 from graphs import *
 import firestore
-imgurID = '44dc4e7f6a501c1'
-imgurSecret = 'aa1c760cc685c9438cf5de53bc4e5e7cf800ba09'
+import imgur
 
 rcParams.update({'figure.autolayout': True})
 
@@ -131,9 +130,8 @@ def postProcess(screen_name, allTweets, userinfo):
 				tweetsWithImages += 1
 				imagesColors = originalTweet["colors"]
 				likesWithImages.append(int(tweet["likes"]))
-				for image in imagesColors:
-					for color in image:
-						colors.append(np.array((int(color['r']), int(color['g']), int(color['b']))))
+				for color in imagesColors:
+					colors.append(np.array((int(color['r']), int(color['g']), int(color['b']))))
 		except:
 			pass
 
@@ -146,9 +144,8 @@ def postProcess(screen_name, allTweets, userinfo):
 			tweetsWithImages += 1
 			likesWithImages.append(int(tweet["likes"]))
 			imagesColors = ast.literal_eval(str(tweet["colors"]))
-			for image in imagesColors:
-				for color in image:
-					colors.append(np.array((int(color['r']), int(color['g']), int(color['b']))))
+			for color in imagesColors:
+				colors.append(np.array((int(color['r']), int(color['g']), int(color['b']))))
 		sentiment = ast.literal_eval(str(tweet["score"]))["compound"]
 		if sentiment <= -0.05:
 			negativeTweets += 1
@@ -193,6 +190,9 @@ def postProcess(screen_name, allTweets, userinfo):
 	likes.sort()
 	retweets.sort()
 	likesWithImages.sort()
+	outputJSON["likes"] = likes
+	outputJSON['retweets'] = retweets
+	outputJSON['likes_with_images'] = likesWithImages
 
 	#get most responded to people:
 	tweetRespondedToUsersKeys = list(tweetRespondedToUsers.keys())
@@ -203,26 +203,26 @@ def postProcess(screen_name, allTweets, userinfo):
 	outputJSON["topFiveRespondedTo"] = topFiveRespondingTo
 
 
-	name = makeHistogram("likes_histogram", likes, "likes per post", "# of posts in range", "Histogram of likes for "+screen_name+" tweets", absolute_path_to_figures)
-	outputJSON["likes_histogram"] = name
+	html = makeHistogram("likes_histogram", likes, "likes per post", "# of posts in range", "Histogram of likes for "+screen_name+" tweets")
+	outputJSON["likes_histogram"] = html
 
-	name = makeHistogram("likes_with_images_histogram", likesWithImages, "likes per post with image", "# of posts in range", "Histogram of likes for "+screen_name+"'s tweets with images", absolute_path_to_figures)
-	outputJSON["likes_with_images_histogram"] = name
+	html = makeHistogram("likes_with_images_histogram", likesWithImages, "likes per post with image", "# of posts in range", "Histogram of likes for "+screen_name+"'s tweets with images")
+	outputJSON["likes_with_images_histogram"] = html
 
-	name = makeHistogram("likes_for_retweets_histogram", likesForRetweet, "likes per retweet post", "# of posts in range", "Histogram of likes for tweets "+screen_name+" retweets", absolute_path_to_figures)
-	outputJSON["likes_for_retweets_histogram"] = name
+	html = makeHistogram("likes_for_retweets_histogram", likesForRetweet, "likes per retweet post", "# of posts in range", "Histogram of likes for tweets "+screen_name+" retweets")
+	outputJSON["likes_for_retweets_histogram"] = html
 
-	name = makeHistogram("likes_for_original_histogram", likesForOriginal, "likes per original post", "# of posts in range", "Histogram of likes for "+screen_name+"'s original tweets", absolute_path_to_figures)
-	outputJSON["likes_for_original_histogram"] = name
+	html = makeHistogram("likes_for_original_histogram", likesForOriginal, "likes per original post", "# of posts in range", "Histogram of likes for "+screen_name+"'s original tweets")
+	outputJSON["likes_for_original_histogram"] = html
 
-	name = createHorizontalSingleBarGraph(
+	html = createHorizontalSingleBarGraph(
 		"responded_most",
 		topFiveReversed,
 		[tweetRespondedToUsers[x][0] for x in topFiveReversed],
 		'Responses (#)',
 		'Account (user name)',
-		"Top 5 Accounts Responded To", absolute_path_to_figures)
-
+		"Top 5 Accounts Responded To")
+	outputJSON["top_5_accounts_respoded_to"] = html
 	# createHorizontalDoubleBarGraph(
 	# 	"RespondedMost2",
 	# 	topFiveReversed,
@@ -240,17 +240,14 @@ def postProcess(screen_name, allTweets, userinfo):
 	print("Top five most popular people responded to: ", topFiveMostPopularRespondingTo)
 	outputJSON["topFiveMostPopularRespondingTo"] = topFiveMostPopularRespondingTo
 
-
-
-
-	createHorizontalSingleBarGraph(
+	html = createHorizontalSingleBarGraph(
 		"responded_popular",
 		topFiveReversed,
 		[int(tweetRespondedToUsers[x][1][0]["user"]["followers"]) for x in topFiveReversed],
 		'Account Followers (#)',
 		'Account (user name)',
-		"Top 5 Most Popular Accounts Responded To", absolute_path_to_figures)
-
+		"Top 5 Most Popular Accounts Responded To")
+	outputJSON["top_5_most_popular_accounts"] = html
 	# createHorizontalDoubleBarGraph(
 	# 	"RespondedPopular2",
 	# 	topFiveReversed,
@@ -273,22 +270,31 @@ def postProcess(screen_name, allTweets, userinfo):
 		if tweet["images"] != '[]':
 			countOfImagesInTopFivePercent += 1
 
-	print("out of the top 5% of the tweets,", round(countOfImagesInTopFivePercent/fivePercent, 5), "had images")
+	outputJSON['top5%'] = round(countOfImagesInTopFivePercent/fivePercent, 5)
+	print("out of the top 5% of the tweets,",outputJSON['top5%'], "had images")
 
+	outputJSON['median_likes'] = round(likes[int(count/2)])
 	print("Median likes: ", round(likes[int(count/2)]))
 
-	fig1, ax1 = plt.subplots()
-	ax1.set_title('Basic Plot')
-	ax1.boxplot(likes)
-	fig1.show()
+	# fig1, ax1 = plt.subplots()
+	# ax1.set_title('Basic Plot')
+	# ax1.boxplot(likes)
+	# fig1.show()
+	outputJSON['median_likes_with_images'] = round(likesWithImages[int(tweetsWithImages/2)])
 	print("Median likes with Images:", round(likesWithImages[int(tweetsWithImages/2)]))
 	print("Median retweets: ", round(retweets[int(count/2)]))
+	outputJSON['median_retweets'] = round(retweets[int(count/2)])
 
 	print("% of posts with images: ", round(tweetsWithImages/count,5))
+	outputJSON['PercentPostsWithImages'] = round(tweetsWithImages/count,5)
 
-	print("(responded tweets : self posted tweets) ratio: ", round(responseCount/(count - responseCount),5))
+	print("(responded tweets : self posted tweets) ratio: ", round(responseCount/(count - responseCount + 1),5))
+	outputJSON['respondedTo:selfPosted'] =  round(responseCount/(count - responseCount + 1),5)
+	return outputJSON
 
-def createImagePallete(colors, path):
+
+def createImagePallete(colors):
+	# fig, ax = plt.subplots()
 	rows = int(len(colors)/100) if len(colors) > 100 else 8
 	pallete = sorted(colors, key=lambda rgb : step(rgb,rows))
 
@@ -313,11 +319,14 @@ def createImagePallete(colors, path):
 	plt.tight_layout()
 	# plt.colorbar()
 	photoName = screen_name + "_pallete" + '.pdf'
-	plt.savefig(path + photoName)
+	imgur.upload(plt, photoName)
+	plt.savefig(photoName)
 	return photoName
 	# plt.show()
 
-def createHorizontalSingleBarGraph(name, x, y, x_axis, y_axis, title, path):
+def createHorizontalSingleBarGraph(name, x, y, x_axis, y_axis, title):
+	# fig, ax = plt.subplots()
+
 	plt.clf()
 	y_pos = np.arange(len(x))
 	ax = plt.subplot(111)
@@ -335,11 +344,15 @@ def createHorizontalSingleBarGraph(name, x, y, x_axis, y_axis, title, path):
 			 "", fontsize=10)
 	plt.tight_layout()
 
-	plt.savefig(path + screen_name + "_" + name + '.pdf')
-	return screen_name + name
+	# plt.savefig(path + screen_name + "_" + name + '.pdf')
+	html = imgur.upload(plt.gcf(), title)
+	return html
+	# return screen_name + name
 	# plt.show()
+	plt.savefig(title + '.pdf')
 
-def createHorizontalDoubleBarGraph(name, x, y1, y2, x_axis, y_axis, title, path):
+def createHorizontalDoubleBarGraph(name, x, y1, y2, x_axis, y_axis, title):
+
 	fig, ax1 = plt.subplots()
 
 	color = 'tab:red'
@@ -359,9 +372,13 @@ def createHorizontalDoubleBarGraph(name, x, y1, y2, x_axis, y_axis, title, path)
 	fig.tight_layout()  # otherwise the right y-label is slightly clipped
 	plt.show()
 
-	plt.savefig(path + name + '.pdf')
+	# plt.savefig(path + name + '.pdf')
+	imgur.upload(plt, photoName)
 
-def makeHistogram(name, data, x_axis, y_axis, title, path):
+
+def makeHistogram(name, data, x_axis, y_axis, title):
+	# fig, ax = plt.subplots()
+
 	plt.clf()
 	plt.figure(figsize=(12, 9))
 	ax = plt.subplot(111)
@@ -386,16 +403,19 @@ def makeHistogram(name, data, x_axis, y_axis, title, path):
 	plt.text(0, -1 * ymax/10, "Data source: www.twitter.com", fontsize=10)
 	plt.tight_layout()
 	box_inches="tight" #removes all the extra whitespace on the edges of your plot.
-	print(path + screen_name + "_" + name + '.pdf')
+	# print(path + screen_name + "_" + name + '.pdf')
 	
-	plt.savefig(path + screen_name + "_" + name + '.pdf')
+	plt.savefig(name + '.pdf')
+	html = imgur.upload(plt.gcf(), title)
+	return html
 	# plt.show()
-	return name + '.pdf'
+	# return name + '.pdf'
 
 	# computingScores(userinfo, getVaderAnalysis(screen_name))
 
 def getAccountInfo(screen_name):
 	allTweets = firestore.getTweets(screen_name)
 	userinfo = firestore.getInfo(screen_name)
-	postProcess(screen_name, allTweets, userinfo)
+	data = postProcess(screen_name, allTweets, userinfo)
+	firestore.saveProcessedData(screen_name, data)
 
