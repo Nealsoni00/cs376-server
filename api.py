@@ -46,8 +46,8 @@ class Endpoint:
 class API:
 	def __init__(self, api):
 		self.api = api
-		self.original = Endpoint('original', 300, 60*15)
-		self.retweets = Endpoint('retweets', 300, 60*15)
+		self.original = Endpoint('original', 150, 60*15)
+		self.retweets = Endpoint('retweets', 150, 60*15)
 
 class apiObject:
 	def __init__(self, apis):

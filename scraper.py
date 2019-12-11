@@ -80,33 +80,33 @@ def processTweet(tweet, api, analyzer):
 
 	# print(originalTweetData)
 	# ************* GET TOP RETWEETS OF TWEET ************************
-	topRetweets = []
-	try:
-		print("GET RETWEETS")
-		if (api.validRetweetsAPI()):
-			api.currAPI().retweets.increment()
-			topRetweets = twitter.get_retweet_info(api.currAPI(), tweet.id_str, 5)
-		else:
-			timeout = api.retweetTimeout()
-			print("sleeping for retweets " + str(timeout))
-			time.sleep(timeout)
-			api.reset()
-	except:
-		 print("******************* ERROR getting top retweets ****************")
+	# topRetweets = []
+	# try:
+	# 	print("GET RETWEETS")
+	# 	if (api.validRetweetsAPI()):
+	# 		api.currAPI().retweets.increment()
+	# 		topRetweets = twitter.get_retweet_info(api.currAPI(), tweet.id_str, 5)
+	# 	else:
+	# 		timeout = api.retweetTimeout()
+	# 		print("sleeping for retweets " + str(timeout))
+	# 		time.sleep(timeout)
+	# 		api.reset()
+	# except:
+	# 	 print("******************* ERROR getting top retweets ****************")
 
 	# # ******************** GET TWEET IMAGE ************************
 	imageInfo = []
 	tweetImages = []
 	tweetColors = []
-	# try:
-	print("HERE")
-	if 'entities' in tweet._json:
-		if 'media' in tweet._json['entities']:
-			print("HAS IMAGES")
-			tweetImages, tweetColors = twitter.get_tweet_image_info(tweet)
+	try:
+	# print("HERE")
+		if 'entities' in tweet._json:
+			if 'media' in tweet._json['entities']:
+				print("HAS IMAGES")
+				tweetImages, tweetColors = twitter.get_tweet_image_info(tweet)
 
-	# except:
-	# 	print("*******************Request failed for tweet images *****************")
+	except:
+		print("*******************Request failed for tweet images *****************")
 
 	# ******************** GET TWEET SENTEMENT ANALYSIS ************************
 	tweettext = ""
@@ -120,7 +120,6 @@ def processTweet(tweet, api, analyzer):
 	score = analyzer.polarity_scores(tweettext)
 	# print("SCORE: " + str(vs))
 	
-
 	# ********************* GET TWEET HASHTAGS ***************************
 	hashtags = []
 	try:
@@ -138,24 +137,36 @@ def processTweet(tweet, api, analyzer):
 def analyse(screen_name, alltweets, apis):
 	allData = {}
 	analyzer = SentimentIntensityAnalyzer()
-
+	count = 0
+	pageSize = 449
+	currentPage = {}
+	pageCount = 0
+	pages = []
 	for tweet in alltweets:
 		#If the tweet is in response to another tweet, get that original tweet.
 		data = processTweet(tweet, apis, analyzer)
 		allData[tweet.id_str] = data
-		for i in range(0,100):
-			allData[tweet.id_str + str(i)] = data
+		
+		currentPage[tweet.id_str] = data
+		if (count == pageSize):
+			firestore.saveTweetData(screen_name, currentPage, pageCount)
+			currentPage = {}
+			pages.append(str(pageCount))
+			pageCount += 1
+			count = 0
+		count += 1
+		# for i in range(0,100):
+		# 	allData[tweet.id_str + str(i)] = data
 		# print(data)
+	firestore.saveTweetData(screen_name, item, currentPage)
+	pages.append(str(pageCount))
+	firestore.saveTweetPages(screen_name, pages)
+
 	return allData
 
 def getAccountData(screen_name, getAll = True):
 	 #convert to API objects instead of KEY objects
 	keys = []
-	keys.append(KEY( # Neal Soni api token meant for personal use
-	"devzpy79XxBxnHCZKO9NLpWdD",
-	"jJ8oGnU4ULEdubsV9s7TIfrfhORo5U3Kf3CAY0vLHTcJco2rT3",
-	"2573581272-d3PDuATbzta0XjCTTjaARdKuqCg8JmQRA8WvnjL",
-	"CP3J1KhvXa1gc1zVddcX8tAqJbylywMTAOsKYCp6iJs2h"))
 	keys.append(KEY( # Arun Soni api token meant for personal use
 	"W2rzJn96XwhdUbOVPMxRARGoY",
 	"Z0nBnpcZOvu569jkUVgBJhmyBBHuJb7c7RG1eHhTggkvyrp2ku",
@@ -166,7 +177,11 @@ def getAccountData(screen_name, getAll = True):
 	"sNCJrnABbHN4qzqGnZlsK27PiDhNPOcN8Tixc9h0RQiQsyXFQ4",
 	"818209251474702337-oRXOrPvxio8ymKC5b3jsoJ2jrcBfcsX",
 	"WMBaKqNqOKX7IGTUuAFHLUmbNxPpV0qdsuOwJXX58KCeC"))
-	
+	keys.append(KEY( # Neal Soni api token meant for personal use
+	"devzpy79XxBxnHCZKO9NLpWdD",
+	"jJ8oGnU4ULEdubsV9s7TIfrfhORo5U3Kf3CAY0vLHTcJco2rT3",
+	"2573581272-d3PDuATbzta0XjCTTjaARdKuqCg8JmQRA8WvnjL",
+	"CP3J1KhvXa1gc1zVddcX8tAqJbylywMTAOsKYCp6iJs2h"))
 	
 	apis = [API(key.api) for key in keys]
 	api = apiObject(apis)
@@ -176,14 +191,15 @@ def getAccountData(screen_name, getAll = True):
 
 	alltweets, userInfo = get_all_tweets(screen_name, getAll, api)
 	allData = analyse(screen_name, alltweets, api)
+	
 	dataChunks = chunks(allData, 500)
 	
-	page = 0
-	pages = []
-	for item in dataChunks:
-		firestore.saveTweetData(screen_name, item, page)
-		pages.append(str(page))
-		page += 1
+	# page = 0
+	# pages = []
+	# for item in dataChunks:
+	# 	firestore.saveTweetData(screen_name, item, page)
+	# 	pages.append(str(page))
+	# 	page += 1
 	
 	firestore.saveTweetPages(screen_name, pages)
 
