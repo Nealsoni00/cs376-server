@@ -1,11 +1,4 @@
 import tweepy #https://github.com/tweepy/tweepy
-import csv
-import sys
-import os
-import re
-from datetime import datetime
-from datetime import timedelta
-import time
 import io
 import requests
 import numpy as np
@@ -16,6 +9,7 @@ from PIL import Image
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import firestore
 import twitter
+from api import KEY, API, apiObject 
 
 def get_all_tweets(screen_name, getAll, api):
 
@@ -28,7 +22,7 @@ def get_all_tweets(screen_name, getAll, api):
 	alltweets = []
 
 	#make initial request for most recent tweets (200 is the maximum allowed count at each interval)
-	new_tweets = api1.user_timeline(screen_name = screen_name,count=200, include_entities=True, tweet_mode='extended')
+	new_tweets = api1.user_timeline(screen_name = screen_name,count=30, include_entities=True, tweet_mode='extended')
 
 	#save most recent tweets
 	alltweets.extend(new_tweets)
@@ -59,21 +53,21 @@ def processTweet(tweet, api, analyzer):
 	# ************* GET ORIGINAL TWEET DATA ************************
 	if ('in_reply_to_status_id' in tweet._json):
 		if str(tweet.in_reply_to_status_id) != 'None':
-			# try:
-				print("GETING ORIGINAL")
+			try:
+				# print("GETING ORIGINAL")
 				if (api.validOriginalAPI()):
-					print("____ HERE ORIGINAL 1")
+					# print("____ HERE ORIGINAL 1")
 					api.currAPI().original.increment()
-					originalTweetData = twitter.get_original_tweet_data(api.currAPI(), tweet.in_reply_to_status_id)
+					originalTweetData = twitter.get_original_tweet_data(api.currAPI(), tweet.in_reply_to_status_id, analyzer)
 					print("got original data for tweet. ", tweet.in_reply_to_status_id, api.currAPI().original.count)
 				else:
-					print("____ HERE2")
+					# print("____ HERE2")
 					timeout = api.originalTimeout()
 					print("sleeping for original" + str(timeout))
 					time.sleep(timeout)
 					api.reset()
-			# except:
-			# 	print("*******************Request failed for original tweet data *****************")
+			except:
+				print("*******************Request failed for original tweet data *****************")
 
 	# print(originalTweetData)
 	# ************* GET TOP RETWEETS OF TWEET ************************
@@ -125,131 +119,16 @@ def analyse(screen_name, alltweets, apis):
 		data = processTweet(tweet, apis,analyzer)
 		allData[tweet.id_str] = data
 		# print(data)
-
 	return allData
-
-class KEY:
-	def __init__(self, _consumer_key, _consumer_secret, _access_key, _access_secret):
-		self.consumer_key	= _consumer_key
-		self.consumer_secret = _consumer_secret
-		self.access_key	  = _access_key
-		self.access_secret   = _access_secret
-
-		self.auth = tweepy.OAuthHandler(_consumer_key, _consumer_secret)
-		self.auth.set_access_token(_access_key, _access_secret)
-		self.api = tweepy.API(self.auth, wait_on_rate_limit=True)
-
-class Endpoint:
-	def __init__(self, name, count, limit, start, timeout):
-		self.name = name
-		self.count = count
-		self.limit = limit
-		self.start = start
-		self.timeout = timeout
-	
-	def reset(self):
-		self.count = 0
-		self.start = datetime.now()
-
-	def increment(self):
-		self.count += 1
-		if self.count > self.limit:
-			if self.calcTimeout() > 0:
-				return False
-			else:
-				return True
-		else:
-			return True
-	
-	def printf(self):
-		print("Endpoint", self.name, self.count, self.limit, self.start, self.timeout)
-	
-	def calcTimeout(self):
-		# print("HERE TIMEOUT")
-		timeoutDelta = (timedelta(seconds = self.timeout) - (datetime.now() - self.start)).total_seconds()
-		print('timeoutDelta', timeoutDelta)
-		return timeoutDelta
-class API:
-	def __init__(self, api):
-		self.api = api
-		self.original = Endpoint('original', 0, 5, datetime.now(), 60)
-		self.retweets = Endpoint('retweets', 0, 5, datetime.now(), 60)
-
-class apiObject:
-	def __init__(self, apis):
-		self.apis = apis
-		self.curr = 0
-		self.count = len(apis)
-	
-	def currAPI(self):
-		return self.apis[self.curr]
-	
-	def validOriginalAPI(self):
-		print("HERE VALID")
-		for i in range(0, self.count):
-			endpoint = self.apis[i].original
-			# print('___', i, self.apis[i].original)
-			# endpoint.printf()
-			if endpoint.count < endpoint.limit:
-				self.curr = i
-				return True
-			else: 
-				timeout = endpoint.calcTimeout()
-				print('*___', i, timeout )
-				if timeout < 0:
-					self.curr = i
-					return True
-		return False
-	
-	def originalTimeout(self):
-		minTimeout = 15*60
-		for i in range(0, self.count):
-			timeout = self.apis[i].original.calcTimeout()
-			if timeout < minTimeout:
-				minTimeout = timeout
-		return minTimeout
-
-	def validRetweetsAPI(self):
-		print("HERE VALID")
-		for i in range(0, self.count):
-			endpoint = self.apis[i].retweets
-			# print('___', i, self.apis[i].original)
-			# endpoint.printf()
-			if endpoint.count < endpoint.limit:
-				self.curr = i
-				return True
-			else: 
-				timeout = endpoint.calcTimeout()
-				print('*___', i, timeout )
-				if timeout < 0:
-					self.curr = i
-					return True
-		return False
-	
-	def retweetTimeout(self):
-		minTimeout = 900
-		for i in range(0, self.count):
-			timeout = self.apis[i].retweets.calcTimeout()
-			if timeout < minTimeout:
-				minTimeout = timeout
-		return minTimeout
-	
-	def printAPI(self):
-		for i in range(0, self.count):
-			print("API", i, self.apis[i].original.count, self.apis[i].retweets.count)
-	def reset(self):
-		for i in range(0, self.count):
-			timeout = self.apis[i].retweets.calcTimeout()
-			if timeout < 0:
-				 self.apis[i].retweets.reset()
-		for i in range(0, self.count):
-			timeout = self.apis[i].original.calcTimeout()
-			if timeout < 0:
-				 self.apis[i].original.reset()
 
 def getAccountData(screen_name, getAll = True):
 	 #convert to API objects instead of KEY objects
 	keys = []
+	keys.append(KEY( # Neal Soni api token meant for personal use
+	"devzpy79XxBxnHCZKO9NLpWdD",
+	"jJ8oGnU4ULEdubsV9s7TIfrfhORo5U3Kf3CAY0vLHTcJco2rT3",
+	"2573581272-d3PDuATbzta0XjCTTjaARdKuqCg8JmQRA8WvnjL",
+	"CP3J1KhvXa1gc1zVddcX8tAqJbylywMTAOsKYCp6iJs2h"))
 	keys.append(KEY( # Arun Soni api token meant for personal use
 	"W2rzJn96XwhdUbOVPMxRARGoY",
 	"Z0nBnpcZOvu569jkUVgBJhmyBBHuJb7c7RG1eHhTggkvyrp2ku",
@@ -260,11 +139,7 @@ def getAccountData(screen_name, getAll = True):
 	"sNCJrnABbHN4qzqGnZlsK27PiDhNPOcN8Tixc9h0RQiQsyXFQ4",
 	"818209251474702337-oRXOrPvxio8ymKC5b3jsoJ2jrcBfcsX",
 	"WMBaKqNqOKX7IGTUuAFHLUmbNxPpV0qdsuOwJXX58KCeC"))
-	keys.append(KEY( # Neal Soni api token meant for personal use
-	"devzpy79XxBxnHCZKO9NLpWdD",
-	"jJ8oGnU4ULEdubsV9s7TIfrfhORo5U3Kf3CAY0vLHTcJco2rT3",
-	"2573581272-d3PDuATbzta0XjCTTjaARdKuqCg8JmQRA8WvnjL",
-	"CP3J1KhvXa1gc1zVddcX8tAqJbylywMTAOsKYCp6iJs2h"))
+	
 	apis = [API(key.api) for key in keys]
 	api = apiObject(apis)
 	# get_all_followers(screen_name, getAll, apis) #uncomment if to get the followers
@@ -273,5 +148,5 @@ def getAccountData(screen_name, getAll = True):
 
 	alltweets = get_all_tweets(screen_name, getAll, api)
 	allData = analyse(screen_name, alltweets, api)
-	# firestore.saveTweetData(screen_name, allData)
+	firestore.saveTweetData(screen_name, allData)
 	# print(allData)
