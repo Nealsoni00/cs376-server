@@ -1,12 +1,6 @@
 import tweepy #https://github.com/tweepy/tweepy
-import csv
-import sys
-import os
-import re
-from datetime import datetime
-from datetime import timedelta
-import time
 import io
+import re
 import requests
 import numpy as np
 import urllib
@@ -87,7 +81,7 @@ def get_tweet_image_info(tweet):
 			tweetColors.append(colorsArray)
 	return [tweetImages, tweetColors]
 
-def get_original_tweet_data(apiObject, tweetID):
+def get_original_tweet_data(apiObject, tweetID, analyzer):
 	api = apiObject.api
 
 	originalTweetData = {}
@@ -96,7 +90,7 @@ def get_original_tweet_data(apiObject, tweetID):
 		# print("getting original tweet data for: ", tweetID)
 		try:
 			originalTweet = api.get_status(tweetID)
-			print(originalTweet)
+			# print(originalTweet)
 			imageInfo = []
 			tweetImages = []
 			tweetColors = []
@@ -120,6 +114,19 @@ def get_original_tweet_data(apiObject, tweetID):
 			originalTweetData["user"] = person
 			originalTweetData["images"] = tweetImages
 			originalTweetData["colors"] = tweetColors
+
+			tweettext = ""
+			try: #if theres a long version of the tweet then use it.
+				tweettext = originalTweet.full_text
+			except AttributeError:
+				tweettext =  originalTweet.text
+			originalTweetData["text"] = tweettext
+			tweettext = clean_tweet(tweettext)
+			# get tweet sentiment scores:
+			score = analyzer.polarity_scores(tweettext)
+
+			originalTweetData["score"] = score
+
 			return originalTweetData
 		except:
 			print("error getting tweet with id: ", tweet.in_reply_to_status_id)
@@ -132,7 +139,7 @@ def get_retweet_info(apiObject, tweetID, num):
 	# apiObject.api.original.increment()
     
     retweetInfo = {}
-    print("getting retweets for" + str(tweetID))
+    print("getting retweets for " + str(tweetID))
     retweets = apiObject.api.retweets(tweetID, count=100)
 
     retweetsFormated = []
