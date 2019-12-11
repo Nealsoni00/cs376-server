@@ -12,3 +12,5 @@ def saveHandleData(screen_name, data):
 	db.collection(screen_name).document('info').set(data)
 def saveTweetData(screen_name, data, page):
 	db.collection(screen_name).document('tweets').collection(str(page)).document("data").set(data)
+def saveTweetPages(screen_name, names):
+	db.collection(screen_name).document('tweets').set({'pages': names})
