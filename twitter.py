@@ -58,22 +58,24 @@ def get_tweet_image_info(tweet):
 	tweetColors = []
 	if 'media' in tweet.entities:
 		for image in tweet.entities['media']:
+			print("Tweet has image!!!!!!")
 			url = image['media_url']
 			tweetImages.append(url)
-
+			print("HERE4")
 			# if not os.path.isfile(absolute_path_to_images + tweet.id_str + '.png'): #if the file already exists, then dont download it again, just load the old one.
 			resp = urllib.request.urlopen(url)
 			img = np.asarray(bytearray(resp.read()), dtype="uint8")
 			img = cv2.imdecode(img, cv2.IMREAD_COLOR)
-
+			print("HERE5")
 			img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 			im_pil = Image.fromarray(img)
 
 			# cv2.imwrite(absolute_path_to_images + tweet.id_str + '.png',img)
 				# cv2.imshow("Image", img)
-
+			print("HERE6")
 			#Color Analysis:
 			colors = colorgram.extract(im_pil, 6);
+			print("HERE7")
 			colors.sort(key=lambda c: c.hsl.h)
 			colorsArray = []
 			for color in colors:
