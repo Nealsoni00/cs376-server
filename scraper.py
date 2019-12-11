@@ -17,12 +17,12 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import firestore
 import twitter
 
-def get_all_tweets(screen_name, getAll, apis):
+def get_all_tweets(screen_name, getAll, api):
 
 	#Twitter only allows access to a users most recent 3240 tweets with this method
 
 	#authorize twitter, initialize tweepy
-	api1 = apis[0].api
+	api1 = api.apis[0].api
 
 	#initialize a list to hold all the tweepy Tweets
 	alltweets = []
@@ -52,47 +52,38 @@ def get_all_tweets(screen_name, getAll, apis):
 
 	return alltweets
 
-
-
-def processTweet(tweet):
+def processTweet(tweet, api):
 	originalTweetData = {}
-	currAPINum = currOriginalTweetsAPI % len(apis)
-	print(count, apis[currAPINum].originalCount)
+	# ************* GET ORIGINAL TWEET DATA ************************
 	try:
 		if str(tweet.in_reply_to_status_id) != 'None':
-			if  apis[currAPINum].originalCount == 0:
-				apis[currAPINum].originalStart = datetime.now()
-			elif apis[currAPINum].originalCount == 900:
-				print("\n\n\n					SWITCHING APIS			   \n\n\n")
-				currOriginalTweetsAPI += 1
-				currAPINum = currOriginalTweetsAPI % len(apis)
-				print("				  ", currAPINum, apis[currAPINum].originalCount , timedelta(minutes = 15) - (datetime.now() - apis[currAPINum].originalStart), "	   ")
-
-				if apis[currAPINum].originalCount >= 900:
-					if timedelta(minutes = 15) > (datetime.now() - apis[currAPINum].originalStart):
-						print("pausing for ", timedelta(minutes = 15) - (datetime.now() - apis[currAPINum].originalStart))
-					while (timedelta(minutes = 15) > (datetime.now() - apis[currAPINum].originalStart)):
-						time.sleep(1) #just gotta wait untill that time is up
-					apis[currAPINum].originalCount = 0
-					apis[currAPINum].originalStart = datetime.now()
-
-			originalTweetData = twitter.get_original_tweet_data(apis[currAPINum], tweet.in_reply_to_status_id)
-			# apis[currApi % len(apis)].originalCount += 1
-			print("got original data for tweet. ", tweet.in_reply_to_status_id, apis[currAPINum].originalCount)
+			if (api.validOriginalAPI()):
+				api.currAPI().original.increment()
+				originalTweetData = twitter.get_original_tweet_data(api.apis[currAPINum], tweet.in_reply_to_status_id)
+				print("got original data for tweet. ", tweet.in_reply_to_status_id, api.apis[currAPINum].originalCount)
+			else:
+				timeout = api.originalTimeout()
+				print("sleeping for " + str(timeout))
+				time.sleep(timeout)
 	except:
-		# currApi += 1
 		print("*******************Request failed for original tweet data *****************")
 	count += 1
 
 	print(originalTweetData)
-	# get the top retweets of the tweet.
+	# ************* GET TOP RETWEETS OF TWEET ************************
 	topRetweets = []
 	try:
-		 topRetweets = twitter.get_retweet_info(apis[currTweetImagesAPI % len(apis)], tweet.id_str, 5)
+		if (api.validRetweetAPI()):
+			api.currAPI().retweets.increment()
+			topRetweets = twitter.get_retweet_info(api.apis[currTweetImagesAPI % len(api.apis)], tweet.id_str, 5)
+		else:
+			timeout = api.retweetTimeout()
+			print("sleeping for " + str(timeout))
+			time.sleep(timeout)
 	except:
-		 currApi += 1
 		 print("******************* ERROR getting top retweets ****************")
 
+	# ******************** GET TWEET IMAGE ************************
 	imageInfo = []
 	tweetImages = []
 	tweetColors = []
@@ -103,7 +94,7 @@ def processTweet(tweet):
 	except:
 		print("*******************Request failed for tweet images *****************")
 
-
+	# ******************** GET TWEET SENTEMENT ANALYSIS ************************
 	tweettext = ""
 	try: #if theres a long version of the tweet then use it.
 		tweettext = tweet.full_text
@@ -117,15 +108,16 @@ def processTweet(tweet):
 	data = {'id':tweet.id_str,'created_at':tweet.created_at,'likes':tweet.favorite_count,'retweets':tweet.retweet_count, 'responseTo':tweet.in_reply_to_status_id, 'originalTweetData':originalTweetData, 'images':tweetImages, 'colors':tweetColors, 'text':tweettext, 'score':score}
 	return data
 
-def analyse(screen_name, alltweets):
+def analyse(screen_name, alltweets, apis):
 	allData = {}
 	currOriginalTweetsAPI = 0
 	currTweetImagesAPI = 0
 	currRetweetsAPI = 0
+	currAPI = 1
 
 	for tweet in alltweets:
 		#If the tweet is in response to another tweet, get that original tweet.
-		data = processTweet(tweet)
+		data = processTweet(tweet, apis)
 		allData[tweet.id_str] = data
 		print(data)
 
@@ -142,17 +134,73 @@ class KEY:
 		self.auth.set_access_token(_access_key, _access_secret)
 		self.api = tweepy.API(self.auth, wait_on_rate_limit=True)
 
+class Endpoint:
+	def __init__(self, name, count, limit, start, timeout):
+		self.name = name
+		self.count = count
+		self.limit = limit
+		self.start = start
+		self.timeout = timeout
+	
+	def reset():
+		self.count = 0
+		self.start = datetime.now()
+
+	def increment():
+		self.count += 1
+		if self.count > self.limit:
+			if self.timeout() > 0:
+				return False
+			else:
+				return True
+		else 
+			return True
+ 	def timeout():
+ 		return timedelta(minutes = 15) - (datetime.now() - self.start)
 class API:
 	def __init__(self, api):
 		self.api = api
-		self.originalCount = 0
-		self.imageCount	= 0
-		self.retweetsCount = 0
+		self.original = Endpoint('original', 0, 300, datetime.now(), 15)
+		self.retweets = Endpoint('retweets', 0, 300, datetime.now(), 15)
 
-		self.originalStart = datetime.now()
-		self.imageStart	= datetime.now()
-		self.retweetsStart = datetime.now()
+class apiObject:
+	def __init__(self, apis):
+		self.apis = apis
+		self.curr = 0
+		self.count = len(apis)
+	
+	def currAPI():
+		return self.apis(self.curr)
+	
+	def validOriginalAPI():
+		for i in range(0, self.count):
+			if (self.apis[i].original.timeout() < 0):
+				currAPI = i
+				return True
+		return False
+	def originalTimeout():
+		minTimeout = 15
+		for i in range(0, self.count):
+			timeout = self.apis[i].original.timeout()
+			if (timeout < minTimeout):
+				minTimeout = timeout
+		return minTimeout
 
+	def validRetweetAPI():
+		for i in range(0, self.count):
+			if (self.apis[i].retweets.timeout() < 0):
+				currAPI = i
+				return True
+		return False
+	
+	def retweetTimeout():
+		minTimeout = 15
+		for i in range(0, self.count):
+			timeout = self.apis[i].retweets.timeout()
+			if (timeout < minTimeout):
+				minTimeout = timeout
+		return minTimeout
+		
 def getAccountData(screen_name, getAll = True):
 	 #convert to API objects instead of KEY objects
 	keys = []
@@ -172,11 +220,11 @@ def getAccountData(screen_name, getAll = True):
 	"2573581272-d3PDuATbzta0XjCTTjaARdKuqCg8JmQRA8WvnjL",
 	"CP3J1KhvXa1gc1zVddcX8tAqJbylywMTAOsKYCp6iJs2h"))
 	apis = [API(key.api) for key in keys]
-
+	api = apiObject(apis)
 	# get_all_followers(screen_name, getAll, apis) #uncomment if to get the followers
 
 	# print(get_original_tweet_data(apis[0], "1076160984916656128"))
 
-	alltweets = get_all_tweets(screen_name, getAll, apis)
-	allData = analyse(screen_name, alltweets)
+	alltweets = get_all_tweets(screen_name, getAll, api)
+	allData = analyse(screen_name, alltweets, api)
 	print(allData)
