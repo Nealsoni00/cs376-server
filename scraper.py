@@ -167,6 +167,7 @@ def analyse(screen_name, alltweets, apis):
 	return allData
 
 def getAccountData(screen_name, getAll = True):
+	screen_name = screen_name.lower()
 	 #convert to API objects instead of KEY objects
 	keys = []
 	keys.append(KEY( # Arun Soni api token meant for personal use
@@ -190,6 +191,7 @@ def getAccountData(screen_name, getAll = True):
 	# get_all_followers(screen_name, getAll, apis) #uncomment if to get the followers
 
 	# print(get_original_tweet_data(apis[0], "1076160984916656128"))
+	firestore.addHandle(screen_name)
 
 	alltweets, userInfo = get_all_tweets(screen_name, getAll, api)
 	allData = analyse(screen_name, alltweets, api)

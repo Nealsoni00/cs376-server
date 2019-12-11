@@ -33,3 +33,16 @@ def getInfo(screen_name):
 	info = db.collection(screen_name).document('info').get().to_dict()
 	# print(info)
 	return info
+
+def getAllHandles():
+	return db.collection('listOfHandles').document('handles').get().to_dict()['handles']
+
+def addHandle(screen_name):
+	screen_name = screen_name.lower()
+	allHandles = getAllHandles()
+	print(allHandles)
+	if not screen_name in allHandles:
+		allHandles.append(screen_name)
+	db.collection('listOfHandles').document('handles').set({'handles': allHandles})
+	# print(info)
+	# return info
