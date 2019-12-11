@@ -14,7 +14,8 @@ def saveTweetData(screen_name, data, page):
 	db.collection(screen_name).document('tweets').collection(str(page)).document("data").set(data)
 def saveTweetPages(screen_name, names):
 	db.collection(screen_name).document('tweets').set({'pages': names})
-
+def saveProcessedData(screen_name, data):
+	db.collection(screen_name).document('processed').set(data)
 
 def getTweets(screen_name):
 	allTweets = {}
