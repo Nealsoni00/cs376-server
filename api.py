@@ -41,7 +41,7 @@ class Endpoint:
 	def calcTimeout(self):
 		# print("HERE TIMEOUT")
 		timeoutDelta = (timedelta(seconds = self.timeout) - (datetime.now() - self.start)).total_seconds()
-		print('timeoutDelta', timeoutDelta)
+		# print('timeoutDelta', timeoutDelta)
 		return timeoutDelta
 class API:
 	def __init__(self, api):
@@ -69,7 +69,7 @@ class apiObject:
 				return True
 			else: 
 				timeout = endpoint.calcTimeout()
-				print('*___', i, timeout )
+				# print('*___', i, timeout )
 				if timeout < 0:
 					self.curr = i
 					return True
@@ -84,7 +84,7 @@ class apiObject:
 		return minTimeout
 
 	def validRetweetsAPI(self):
-		print("HERE VALID")
+		# print("HERE VALID")
 		for i in range(0, self.count):
 			endpoint = self.apis[i].retweets
 			# print('___', i, self.apis[i].original)
@@ -94,7 +94,7 @@ class apiObject:
 				return True
 			else: 
 				timeout = endpoint.calcTimeout()
-				print('*___', i, timeout )
+				# print('*___', i, timeout )
 				if timeout < 0:
 					self.curr = i
 					return True
