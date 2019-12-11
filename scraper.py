@@ -55,9 +55,9 @@ def get_all_tweets(screen_name, getAll, api):
 
 	return alltweets, userInfo
 
-def processTweet(tweet, api, analyzer):
+def processTweet(tweet, api, analyzer, count):
 	api.printAPI()
-	print("PROCESSING TWEET: ", tweet.id_str)
+	print("PROCESSING TWEET: ", count, tweet.id_str)
 	originalTweetData = {}
 	# ************* GET ORIGINAL TWEET DATA ************************
 	if ('in_reply_to_status_id' in tweet._json):
@@ -142,11 +142,13 @@ def analyse(screen_name, alltweets, apis):
 	currentPage = {}
 	pageCount = 0
 	pages = []
+	total = 0
+
 	for tweet in alltweets:
 		#If the tweet is in response to another tweet, get that original tweet.
-		data = processTweet(tweet, apis, analyzer)
+		data = processTweet(tweet, apis, analyzer, total)
 		allData[tweet.id_str] = data
-		
+		total += 1
 		currentPage[tweet.id_str] = data
 		if (count == pageSize):
 			firestore.saveTweetData(screen_name, currentPage, pageCount)

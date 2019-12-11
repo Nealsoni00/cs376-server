@@ -158,7 +158,7 @@ def postProcess(screen_name, allTweets, userinfo):
 			tweetsWithNoLikes += 1
 		count += 1
 		if tweet['hashtags']:
-			for hashtag in tweet['hashtags']
+			for hashtag in tweet['hashtags']:
 				hashtag.append(hashtag)
 
 	print("count of colors: ", len(colors))
