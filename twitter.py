@@ -9,6 +9,8 @@ import colorgram   #pip install colorgram.py
 from PIL import Image
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import firestore
+import requests
+from io import BytesIO
 
 def get_user_information(new_tweet, screen_name):
 	#get the infromation about the user from the first tweet. We can ignore it later on.
@@ -58,25 +60,25 @@ def get_tweet_image_info(tweet):
 	tweetColors = []
 	if 'media' in tweet.entities:
 		for image in tweet.entities['media']:
-			print("Tweet has image!!!!!!")
 			url = image['media_url']
 			tweetImages.append(url)
-			print("HERE4")
 			# if not os.path.isfile(absolute_path_to_images + tweet.id_str + '.png'): #if the file already exists, then dont download it again, just load the old one.
-			resp = urllib.request.urlopen(url)
-			img = np.asarray(bytearray(resp.read()), dtype="uint8")
-			img = cv2.imdecode(img, cv2.IMREAD_COLOR)
-			print("HERE5")
-			img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-			im_pil = Image.fromarray(img)
+			response = requests.get(url)
+			img_io = BytesIO(response.content)
+			img = Image.open(img_io)
+
+			# resp = urllib.request.urlopen(url)
+			# img = np.asarray(bytearray(resp.read()), dtype="uint8")
+			# img = cv2.imdecode(img, cv2.IMREAD_COLOR)
+			
+			# print("HERE5")
+			# img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+			# im_pil = Image.fromarray(img)
 
 			# cv2.imwrite(absolute_path_to_images + tweet.id_str + '.png',img)
 				# cv2.imshow("Image", img)
-			print("HERE6")
 			#Color Analysis:
-			colors = colorgram.extract(im_pil, 6);
-			print("HERE7")
-			print(colors)
+			colors = colorgram.extract(img_io, 6);
 			colors.sort(key=lambda c: c.hsl.h)
 			colorsArray = []
 			for color in colors:
@@ -85,9 +87,9 @@ def get_tweet_image_info(tweet):
 				colorTemp["g"] = color.rgb.g
 				colorTemp["b"] = color.rgb.b
 				colorsArray.append(colorTemp)
-			tweetColors.append(colorsArray)
-			print(colorsArray)
-	return [tweetImages, tweetColors]
+			
+			# print(colorsArray)
+	return [tweetImages, colorsArray]
 
 def get_original_tweet_data(apiObject, tweetID, analyzer):
 	api = apiObject.api

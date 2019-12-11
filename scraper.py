@@ -31,7 +31,7 @@ def get_all_tweets(screen_name, getAll, api):
 	alltweets = []
 
 	#make initial request for most recent tweets (200 is the maximum allowed count at each interval)
-	new_tweets = api1.user_timeline(screen_name = screen_name,count=20, include_entities=True, tweet_mode='extended')
+	new_tweets = api1.user_timeline(screen_name = screen_name,count=200, include_entities=True, tweet_mode='extended')
 
 	#save most recent tweets
 	alltweets.extend(new_tweets)
@@ -103,9 +103,7 @@ def processTweet(tweet, api, analyzer):
 	if 'entities' in tweet._json:
 		if 'media' in tweet._json['entities']:
 			print("HAS IMAGES")
-			imageInfo = twitter.get_tweet_image_info(tweet)
-			tweetImages = imageInfo[0]
-			tweetColors = imageInfo[1]
+			tweetImages, tweetColors = twitter.get_tweet_image_info(tweet)
 
 	# except:
 	# 	print("*******************Request failed for tweet images *****************")
@@ -128,12 +126,13 @@ def processTweet(tweet, api, analyzer):
 	try:
 		if 'entities' in tweet._json:
 			if 'hashtags' in tweet._json['entities']:
-				for hashtag in tweet.entities.hashtags:
-					hashtags.append(hashtag.text)
+				for hashtag in tweet._json['entities']['hashtags']:
+					hashtags.append(hashtag['text'])
 				print(hashtags)
 	except:
 		print("*******************Request failed for GET HASHTAGS *****************")
-	data = {'id':tweet.id_str,'created_at':tweet.created_at,'likes':tweet.favorite_count,'retweets':tweet.retweet_count, 'responseTo':tweet.in_reply_to_status_id, 'originalTweetData':originalTweetData, 'images':tweetImages, 'colors':tweetColors, 'text':tweettext, 'score':score}
+	data = {'id':tweet.id_str,'created_at':tweet.created_at,'likes':tweet.favorite_count,'retweets':tweet.retweet_count, 'responseTo':tweet.in_reply_to_status_id, 'originalTweetData':originalTweetData, 'images':tweetImages, 'colors':tweetColors, 'text':tweettext, 'score':score, 'hashtags': hashtags}
+	# print(data)
 	return data
 
 def analyse(screen_name, alltweets, apis):
@@ -152,7 +151,6 @@ def analyse(screen_name, alltweets, apis):
 def getAccountData(screen_name, getAll = True):
 	 #convert to API objects instead of KEY objects
 	keys = []
-	
 	keys.append(KEY( # Neal Soni api token meant for personal use
 	"devzpy79XxBxnHCZKO9NLpWdD",
 	"jJ8oGnU4ULEdubsV9s7TIfrfhORo5U3Kf3CAY0vLHTcJco2rT3",
@@ -168,6 +166,7 @@ def getAccountData(screen_name, getAll = True):
 	"sNCJrnABbHN4qzqGnZlsK27PiDhNPOcN8Tixc9h0RQiQsyXFQ4",
 	"818209251474702337-oRXOrPvxio8ymKC5b3jsoJ2jrcBfcsX",
 	"WMBaKqNqOKX7IGTUuAFHLUmbNxPpV0qdsuOwJXX58KCeC"))
+	
 	
 	apis = [API(key.api) for key in keys]
 	api = apiObject(apis)
