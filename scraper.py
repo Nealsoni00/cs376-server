@@ -81,7 +81,7 @@ def processTweet(tweet, api, analyzer):
 		print("GET RETWEETS")
 		if (api.validRetweetsAPI()):
 			api.currAPI().retweets.increment()
-			topRetweets = twitter.get_retweet_info(api.apis[api.currAPI()], tweet.id_str, 5)
+			topRetweets = twitter.get_retweet_info(api.currAPI(), tweet.id_str, 5)
 		else:
 			timeout = api.retweetTimeout()
 			print("sleeping for retweets " + str(timeout))
