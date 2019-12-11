@@ -128,7 +128,6 @@ def get_original_tweet_data(apiObject, tweetID):
 		return {}
 		# raise Exception('dont need to count this')
 
-
 def get_retweet_info(apiObject, tweetID, num):
 	# apiObject.api.original.increment()
     
