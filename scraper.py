@@ -71,6 +71,7 @@ def processTweet(tweet, api, analyzer):
 					timeout = api.originalTimeout()
 					print("sleeping for original" + str(timeout))
 					time.sleep(timeout)
+					api.reset()
 			# except:
 			# 	print("*******************Request failed for original tweet data *****************")
 
@@ -86,6 +87,7 @@ def processTweet(tweet, api, analyzer):
 			timeout = api.retweetTimeout()
 			print("sleeping for retweets " + str(timeout))
 			time.sleep(timeout)
+			api.reset()
 	except:
 		 print("******************* ERROR getting top retweets ****************")
 
@@ -152,7 +154,7 @@ class Endpoint:
 	def increment(self):
 		self.count += 1
 		if self.count > self.limit:
-			if self.timeout() > 0:
+			if self.calcTimeout() > 0:
 				return False
 			else:
 				return True
@@ -164,14 +166,14 @@ class Endpoint:
 	
 	def calcTimeout(self):
 		# print("HERE TIMEOUT")
-		timeoutDelta = (timedelta(minutes = 15) - (datetime.now() - self.start)).total_seconds()
+		timeoutDelta = (timedelta(seconds = self.timeout) - (datetime.now() - self.start)).total_seconds()
 		print('timeoutDelta', timeoutDelta)
 		return timeoutDelta
 class API:
 	def __init__(self, api):
 		self.api = api
-		self.original = Endpoint('original', 0, 300, datetime.now(), 15*60)
-		self.retweets = Endpoint('retweets', 0, 300, datetime.now(), 15*60)
+		self.original = Endpoint('original', 0, 5, datetime.now(), 60)
+		self.retweets = Endpoint('retweets', 0, 5, datetime.now(), 60)
 
 class apiObject:
 	def __init__(self, apis):
@@ -187,15 +189,15 @@ class apiObject:
 		for i in range(0, self.count):
 			endpoint = self.apis[i].original
 			# print('___', i, self.apis[i].original)
-			endpoint.printf()
+			# endpoint.printf()
 			if endpoint.count < endpoint.limit:
-				currAPI = i
+				self.curr = i
 				return True
 			else: 
-				timeout = self.apis[i].original.calcTimeout()
+				timeout = endpoint.calcTimeout()
 				print('*___', i, timeout )
 				if timeout < 0:
-					currAPI = i
+					self.curr = i
 					return True
 		return False
 	
@@ -212,15 +214,15 @@ class apiObject:
 		for i in range(0, self.count):
 			endpoint = self.apis[i].retweets
 			# print('___', i, self.apis[i].original)
-			endpoint.printf()
+			# endpoint.printf()
 			if endpoint.count < endpoint.limit:
-				currAPI = i
+				self.curr = i
 				return True
 			else: 
-				timeout = self.apis[i].original.calcTimeout()
+				timeout = endpoint.calcTimeout()
 				print('*___', i, timeout )
 				if timeout < 0:
-					currAPI = i
+					self.curr = i
 					return True
 		return False
 	
@@ -235,6 +237,15 @@ class apiObject:
 	def printAPI(self):
 		for i in range(0, self.count):
 			print("API", i, self.apis[i].original.count, self.apis[i].retweets.count)
+	def reset(self):
+		for i in range(0, self.count):
+			timeout = self.apis[i].retweets.calcTimeout()
+			if timeout < 0:
+				 self.apis[i].retweets.reset()
+		for i in range(0, self.count):
+			timeout = self.apis[i].original.calcTimeout()
+			if timeout < 0:
+				 self.apis[i].original.reset()
 
 def getAccountData(screen_name, getAll = True):
 	 #convert to API objects instead of KEY objects
