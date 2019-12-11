@@ -64,12 +64,12 @@ def processTweet(tweet, api, analyzer):
 				if (api.validOriginalAPI()):
 					print("____ HERE ORIGINAL 1")
 					api.currAPI().original.increment()
-					originalTweetData = twitter.get_original_tweet_data(api.apis[api.currAPI], tweet.in_reply_to_status_id)
-					print("got original data for tweet. ", tweet.in_reply_to_status_id, api.apis[currAPINum].originalCount)
+					originalTweetData = twitter.get_original_tweet_data(api.currAPI(), tweet.in_reply_to_status_id)
+					print("got original data for tweet. ", tweet.in_reply_to_status_id, api.currAPI().original.count)
 				else:
 					print("____ HERE2")
 					timeout = api.originalTimeout()
-					print("sleeping for " + str(timeout))
+					print("sleeping for original" + str(timeout))
 					time.sleep(timeout)
 			# except:
 			# 	print("*******************Request failed for original tweet data *****************")
@@ -79,12 +79,12 @@ def processTweet(tweet, api, analyzer):
 	topRetweets = []
 	try:
 		print("GET RETWEETS")
-		if (api.validRetweetAPI()):
+		if (api.validRetweetsAPI()):
 			api.currAPI().retweets.increment()
-			topRetweets = twitter.get_retweet_info(api.apis[api.currAPI], tweet.id_str, 5)
+			topRetweets = twitter.get_retweet_info(api.apis[api.currAPI()], tweet.id_str, 5)
 		else:
 			timeout = api.retweetTimeout()
-			print("sleeping for " + str(timeout))
+			print("sleeping for retweets " + str(timeout))
 			time.sleep(timeout)
 	except:
 		 print("******************* ERROR getting top retweets ****************")
@@ -180,19 +180,23 @@ class apiObject:
 		self.count = len(apis)
 	
 	def currAPI(self):
-		return self.apis(self.curr)
+		return self.apis[self.curr]
 	
 	def validOriginalAPI(self):
 		print("HERE VALID")
 		for i in range(0, self.count):
+			endpoint = self.apis[i].original
 			# print('___', i, self.apis[i].original)
-			self.apis[i].original.printf()
-			
-			timeout = self.apis[i].original.calcTimeout()
-			print('*___', i, timeout )
-			if timeout < 0:
+			endpoint.printf()
+			if endpoint.count < endpoint.limit:
 				currAPI = i
 				return True
+			else: 
+				timeout = self.apis[i].original.calcTimeout()
+				print('*___', i, timeout )
+				if timeout < 0:
+					currAPI = i
+					return True
 		return False
 	
 	def originalTimeout(self):
@@ -203,11 +207,21 @@ class apiObject:
 				minTimeout = timeout
 		return minTimeout
 
-	def validRetweetAPI(self):
+	def validRetweetsAPI(self):
+		print("HERE VALID")
 		for i in range(0, self.count):
-			if self.apis[i].retweets.calcTimeout() < 0:
+			endpoint = self.apis[i].retweets
+			# print('___', i, self.apis[i].original)
+			endpoint.printf()
+			if endpoint.count < endpoint.limit:
 				currAPI = i
 				return True
+			else: 
+				timeout = self.apis[i].original.calcTimeout()
+				print('*___', i, timeout )
+				if timeout < 0:
+					currAPI = i
+					return True
 		return False
 	
 	def retweetTimeout(self):
