@@ -76,6 +76,7 @@ def get_tweet_image_info(tweet):
 			#Color Analysis:
 			colors = colorgram.extract(im_pil, 6);
 			print("HERE7")
+			print(colors)
 			colors.sort(key=lambda c: c.hsl.h)
 			colorsArray = []
 			for color in colors:

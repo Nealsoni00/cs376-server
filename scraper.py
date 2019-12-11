@@ -98,12 +98,17 @@ def processTweet(tweet, api, analyzer):
 	imageInfo = []
 	tweetImages = []
 	tweetColors = []
-	try:
-		imageInfo = twitter.get_tweet_image_info(tweet)
-		tweetImages = imageInfo[0]
-		tweetColors = imageInfo[1]
-	except:
-		print("*******************Request failed for tweet images *****************")
+	# try:
+	print("HERE")
+	if 'entities' in tweet._json:
+		if 'media' in tweet._json['entities']:
+			print("HAS IMAGES")
+			imageInfo = twitter.get_tweet_image_info(tweet)
+			tweetImages = imageInfo[0]
+			tweetColors = imageInfo[1]
+
+	# except:
+	# 	print("*******************Request failed for tweet images *****************")
 
 	# ******************** GET TWEET SENTEMENT ANALYSIS ************************
 	tweettext = ""
@@ -116,6 +121,18 @@ def processTweet(tweet, api, analyzer):
 	# get tweet sentiment scores:
 	score = analyzer.polarity_scores(tweettext)
 	# print("SCORE: " + str(vs))
+	
+
+	# ********************* GET TWEET HASHTAGS ***************************
+	hashtags = []
+	try:
+		if 'entities' in tweet._json:
+			if 'hashtags' in tweet._json['entities']:
+				for hashtag in tweet.entities.hashtags:
+					hashtags.append(hashtag.text)
+				print(hashtags)
+	except:
+		print("*******************Request failed for GET HASHTAGS *****************")
 	data = {'id':tweet.id_str,'created_at':tweet.created_at,'likes':tweet.favorite_count,'retweets':tweet.retweet_count, 'responseTo':tweet.in_reply_to_status_id, 'originalTweetData':originalTweetData, 'images':tweetImages, 'colors':tweetColors, 'text':tweettext, 'score':score}
 	return data
 
@@ -169,7 +186,7 @@ def getAccountData(screen_name, getAll = True):
 		pages.append(str(page))
 		page += 1
 	
-	# firestore.saveTweetPages(screen_name, pages)
+	firestore.saveTweetPages(screen_name, pages)
 
 	# process.postProcess(allData, userInfo)
 
