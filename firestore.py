@@ -23,7 +23,8 @@ def getTweets(screen_name):
 	# print(pages)
 	for page in pages['pages']:
 		tweets = db.collection(screen_name).document('tweets').collection(page).document('data').get().to_dict()
-		# print(tweets)
+		# if page == '3':
+		# 	print(page, tweets)
 		for i in tweets:
 			allTweets[i] = tweets[i]
 	return allTweets

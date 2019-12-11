@@ -158,7 +158,7 @@ def analyse(screen_name, alltweets, apis):
 		# for i in range(0,100):
 		# 	allData[tweet.id_str + str(i)] = data
 		# print(data)
-	firestore.saveTweetData(screen_name, item, currentPage)
+	firestore.saveTweetData(screen_name, currentPage, pageCount)
 	pages.append(str(pageCount))
 	firestore.saveTweetPages(screen_name, pages)
 
@@ -201,7 +201,7 @@ def getAccountData(screen_name, getAll = True):
 	# 	pages.append(str(page))
 	# 	page += 1
 	
-	firestore.saveTweetPages(screen_name, pages)
+	# firestore.saveTweetPages(screen_name, pages)
 
 	# process.postProcess(allData, userInfo)
 

@@ -41,7 +41,7 @@ def fig2img(fig):
 def upload(plt, title):
 
 	html_fig = mpld3.fig_to_html(plt)
-	print(html_fig)
+	# print(html_fig)
 	return html_fig
 	# client_id = imgurID
 
