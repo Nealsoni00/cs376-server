@@ -7,8 +7,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-	# allData = scraper.getAccountData('elonmusk', False)
-	process.getAccountInfo('elonmusk')
+	allData = scraper.getAccountData('elonmusk', False)
+	# process.getAccountInfo('elonmusk')
 	return 'Hello, World!'
 	
 
