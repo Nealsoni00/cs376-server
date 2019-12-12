@@ -20,7 +20,7 @@ def chunks(data, SIZE=10000):
     for i in range(0, len(data), SIZE):
         yield {k:data[k] for k in islice(it, SIZE)}
 
-def get_all_tweets(screen_name, getAll, api):
+def get_all_tweets(screen_name, getAll, api, countToGet = 400):
 
 	#Twitter only allows access to a users most recent 3240 tweets with this method
 
@@ -42,16 +42,16 @@ def get_all_tweets(screen_name, getAll, api):
 	userInfo = twitter.get_user_information(new_tweets[0], screen_name) #get and save user information from one tweet
 
 	#keep grabbing tweets until there are no tweets left to grab
-	if getAll:
-		while len(new_tweets) > 0:
-			print("getting tweets before " + str(oldest))
-			#all subsiquent requests use the max_id param to prevent duplicates
-			new_tweets = api1.user_timeline(screen_name = screen_name, count = 200, max_id = oldest)
-			#save most recent tweets
-			alltweets.extend(new_tweets)
-			#update the id of the oldest tweet less one
-			oldest = alltweets[-1].id - 1
-			print("..."+str(len(alltweets))+" tweets downloaded so far")
+	# if getAll:
+	while len(new_tweets) > 0 and (getAll or len(alltweets) < countToGet):
+		print("getting tweets before " + str(oldest))
+		#all subsiquent requests use the max_id param to prevent duplicates
+		new_tweets = api1.user_timeline(screen_name = screen_name, count = 200, max_id = oldest)
+		#save most recent tweets
+		alltweets.extend(new_tweets)
+		#update the id of the oldest tweet less one
+		oldest = alltweets[-1].id - 1
+		print("..."+str(len(alltweets))+" tweets downloaded so far")
 
 	return alltweets, userInfo
 
@@ -166,7 +166,7 @@ def analyse(screen_name, alltweets, apis):
 
 	return allData
 
-def getAccountData(screen_name, getAll = True):
+def getAccountData(screen_name, getAll = True, countToGet = 1000):
 	screen_name = screen_name.lower()
 	 #convert to API objects instead of KEY objects
 	keys = []
@@ -193,7 +193,7 @@ def getAccountData(screen_name, getAll = True):
 	# print(get_original_tweet_data(apis[0], "1076160984916656128"))
 	firestore.addHandle(screen_name)
 
-	alltweets, userInfo = get_all_tweets(screen_name, getAll, api)
+	alltweets, userInfo = get_all_tweets(screen_name, getAll, api, countToGet)
 	allData = analyse(screen_name, alltweets, api)
 	
 	dataChunks = chunks(allData, 500)

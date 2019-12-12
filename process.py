@@ -190,10 +190,10 @@ def postProcess(screen_name, allTweets, userinfo):
 	print("(% Positive, % Neutral, % Negative): (", round(positiveTweets/count,5), round(neutralTweets/count, 5), round(negativeTweets/count, 5), ") tweets")
 	sentimentRatio =   {"positiveP" : round(positiveTweets/count,5),
 						"neutralP"  : round(neutralTweets/count, 5),
-						"negativeP" : round(neutralTweets/count, 5),
+						"negativeP" : round(negativeTweets/count, 5),
 						"positiveC" : round(positiveTweets,5),
 						"neutralC"  : round(neutralTweets, 5),
-						"negativeC" : round(neutralTweets, 5)}
+						"negativeC" : round(negativeTweets, 5)}
 	outputJSON["sentiment"] = sentimentRatio
 
 
@@ -354,7 +354,16 @@ def generateGraph():
 	firestore.saveGraph({'nodes': nodesMap, 'edges': edges})
 	print(edges)
 	print(nodesMap)
+	return nodesArray
 
+def unscrapedHandles():
+	handles = firestore.getAllHandles()
+	nodesArray = generateGraph()
+	unprocessedHandles = []
+	for handle in nodesArray:
+		if not handle in handles and not handle in unprocessedHandles:
+			unprocessedHandles.append(handle)
+	return unprocessedHandles
 
 
 

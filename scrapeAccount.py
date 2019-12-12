@@ -7,12 +7,19 @@ if __name__ == '__main__':
     # 
 	# for i in range(1,len(sys.argv)):
 	# 	screen_name = sys.argv[i]
-	# 	# try:
-	# 	allData = scraper.getAccountData(screen_name, True)
-		# except:
-		# 	print("*********** ERROR SCRAPING DATA FOR: ", screen_name, "*****************")
+	# 	try:
+	# 		allData = scraper.getAccountData(screen_name, True, 1000)
+	# 	except:
+	# 		print("*********** ERROR SCRAPING DATA FOR: ", screen_name, "*****************")
 	# try:
-	processed = process.processAllAccounts()
-	process.generateGraph()
+	# processed = process.processAllAccounts()
+	unscrapedHandles = process.unscrapedHandles()
+	# print(unscrapedHandles)
+	for handle in unscrapedHandles:
+		try:
+			allData = scraper.getAccountData(handle, False, 1000)
+		except:
+			print("*********** ERROR SCRAPING DATA FOR: ", screen_name, "*****************")
+
 	# except:
 	# 	pass
