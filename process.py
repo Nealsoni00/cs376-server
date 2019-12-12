@@ -206,11 +206,26 @@ def postProcess(screen_name, allTweets, userinfo):
 	likes.sort()
 	retweets.sort()
 	likesWithImages.sort()
-	outputJSON["likes"] = likes
+	outputJSON['likes'] = likes
 	outputJSON['retweets'] = retweets
 	outputJSON['likes_with_images'] = likesWithImages
 
-	#get most responded to people:
+	# ************** LIKE DISTRIBUATION HISTOGRAMS ****************
+
+	likes_histogram = graphs.makeHistogram("likes_histogram", likes, "likes per post", "# of posts in range", "Histogram of likes for "+screen_name+" tweets")
+	likes_with_images_histogram = graphs.makeHistogram("likes_with_images_histogram", likesWithImages, "likes per post with image", "# of posts in range", "Histogram of likes for "+screen_name+"'s tweets with images")
+	likes_for_retweets_histogram = graphs.makeHistogram("likes_for_retweets_histogram", likesForRetweet, "likes per retweet post", "# of posts in range", "Histogram of likes for tweets "+screen_name+" retweets")
+	likes_for_original_histogram = graphs.makeHistogram("likes_for_original_histogram", likesForOriginal, "likes per original post", "# of posts in range", "Histogram of likes for "+screen_name+"'s original tweets")
+
+	outputJSON['histograms'] = {
+		"likes_histogram": {'graph': likes_histogram, 'data': likes},
+		"likes_with_images_histogram": {'graph': likes_with_images_histogram, 'data': likesWithImages},
+		"likes_for_retweets_histogram": {'graph': likes_for_retweets_histogram, 'data': likesForRetweet},
+		"likes_for_original_histogram": {'graph': likes_for_original_histogram, 'data': likesForOriginal}
+		}
+
+	# *************** People Responded To **************************
+	# By Count:
 	tweetRespondedToUsersKeys = list(tweetRespondedToUsers.keys())
 	tweetRespondedToUsersKeys.sort(key=lambda x: tweetRespondedToUsers[x][0], reverse=True)
 	topFiveRespondingTo = tweetRespondedToUsersKeys[:5]
@@ -218,65 +233,40 @@ def postProcess(screen_name, allTweets, userinfo):
 	print("top five people responded to: ", topFiveRespondingTo)
 	outputJSON["top_five_responded_to"] = topFiveRespondingTo
 
-
-	html = graphs.makeHistogram("likes_histogram", likes, "likes per post", "# of posts in range", "Histogram of likes for "+screen_name+" tweets")
-	outputJSON["likes_histogram"] = html
-
-	html = graphs.makeHistogram("likes_with_images_histogram", likesWithImages, "likes per post with image", "# of posts in range", "Histogram of likes for "+screen_name+"'s tweets with images")
-	outputJSON["likes_with_images_histogram"] = html
-
-	html = graphs.makeHistogram("likes_for_retweets_histogram", likesForRetweet, "likes per retweet post", "# of posts in range", "Histogram of likes for tweets "+screen_name+" retweets")
-	outputJSON["likes_for_retweets_histogram"] = html
-
-	html = graphs.makeHistogram("likes_for_original_histogram", likesForOriginal, "likes per original post", "# of posts in range", "Histogram of likes for "+screen_name+"'s original tweets")
-	outputJSON["likes_for_original_histogram"] = html
-
-	html = graphs.createHorizontalSingleBarGraph(
+	responded_most = graphs.createHorizontalSingleBarGraph(
 		"responded_most",
 		topFiveReversed,
 		[tweetRespondedToUsers[x][0] for x in topFiveReversed],
 		'Responses (#)',
 		'Account (user name)',
 		"Top 5 Accounts Responded To")
-	outputJSON["top_five_responded_to_graph"] = html
-	outputJSON["top_five_responded_to_data"] = {'labels': topFiveReversed, 'data': [tweetRespondedToUsers[x][0] for x in topFiveReversed]}
-	# createHorizontalDoubleBarGraph(
-	# 	"RespondedMost2",
-	# 	topFiveReversed,
-	# 	[tweetRespondedToUsers[x][0] for x in topFiveReversed],
-	# 	[tweetRespondedToUsers[x][1][0]["user"]["followers"] for x in topFiveReversed],
-	# 	'Responses (#)',
-	# 	'Account (user name)',
-	# 	"Top 5 Accounts Responded To")
-
-	#get most popular responded to people:
+	
+	# By Popularity: 
 	tweetRespondedToUsersKeys = list(tweetRespondedToUsers.keys())
 	tweetRespondedToUsersKeys.sort(key=lambda x: int(tweetRespondedToUsers[x][1][0]["user"]["followers"]), reverse=True)
 	topFiveMostPopularRespondingTo = tweetRespondedToUsersKeys[:5]
-	topFiveReversed = topFiveMostPopularRespondingTo[::-1]
+	topFivePopularReversed = topFiveMostPopularRespondingTo[::-1]
 	print("Top five most popular people responded to: ", topFiveMostPopularRespondingTo)
-	outputJSON["topFiveMostPopularRespondingTo"] = topFiveMostPopularRespondingTo
-
-	html = graphs.createHorizontalSingleBarGraph(
+	responded_popular = graphs.createHorizontalSingleBarGraph(
 		"responded_popular",
-		topFiveReversed,
-		[int(tweetRespondedToUsers[x][1][0]["user"]["followers"]) for x in topFiveReversed],
+		topFivePopularReversed,
+		[int(tweetRespondedToUsers[x][1][0]["user"]["followers"]) for x in topFivePopularReversed],
 		'Account Followers (#)',
 		'Account (user name)',
 		"Top 5 Most Popular Accounts Responded To")
-	outputJSON["top_5_most_popular_accounts"] = html
-	# createHorizontalDoubleBarGraph(
-	# 	"RespondedPopular2",
-	# 	topFiveReversed,
-	# 	[tweetRespondedToUsers[x][0] for x in topFiveReversed],
-	# 	[tweetRespondedToUsers[x][1][0]["user"]["followers"] for x in topFiveReversed],
-	# 	'Responses (#)',
-	# 	'Account (user name)',
-	# 	"Top 5 Most Popular Accounts Responded To")
 
-	print("% tweets with no likes:", round(tweetsWithNoLikes/count, 5))
-	outputJSON["no_likes_percent"] = round(tweetsWithNoLikes/count, 5)
-	outputJSON["no_likes_count"] = round(tweetsWithNoLikes, 5)
+	outputJSON['graphs'] = {
+		"top_five_responded_to_graph": {'graph': responded_most, 'labels': topFiveReversed, 'data': [tweetRespondedToUsers[x][0] for x in topFiveReversed]},
+		"top_five_most_popular_responded_to_graph": {'graph': responded_popular, 'labels': topFivePopularReversed, 'data': [int(tweetRespondedToUsers[x][1][0]["user"]["followers"]) for x in topFivePopularReversed]}
+	}
+
+	# ********** No Likes ***********
+	no_likes_percent = round(tweetsWithNoLikes/count, 5)
+	no_likes_count = round(tweetsWithNoLikes, 5)
+
+	print("% tweets with no likes:", no_likes_percent)
+	outputJSON["no_likes_percent"] = no_likes_percent
+	outputJSON["no_likes_count"] = no_likes_count
 
 	tweetsArray.sort(key=lambda x: int(x["likes"]), reverse=True)
 	fivePercent = int(count*0.05)
@@ -287,26 +277,31 @@ def postProcess(screen_name, allTweets, userinfo):
 		if tweet["images"] != '[]':
 			countOfImagesInTopFivePercent += 1
 
-	outputJSON['Top5Percent'] = round(countOfImagesInTopFivePercent/(fivePercent + 1), 5)
-	print("out of the top 5% of the tweets,",outputJSON['top5%'], "had images")
+	top_5_percent_have_images = round(countOfImagesInTopFivePercent/(fivePercent + 1), 5)
+	outputJSON['top_5_percent_have_images'] = top_5_percent_have_images
+	print("out of the top 5% of the tweets,",top_5_percent_have_images, "had images")
+	
 
-	outputJSON['median_likes'] = round(likes[int(count/2)])
-	print("Median likes: ", round(likes[int(count/2)]))
+	median_likes = round(likes[int(count/2)])
+	median_likes_with_images = round(likesWithImages[int(tweetsWithImages/2)])
+	median_retweets = round(retweets[int(count/2)])
+	outputJSON['median_likes'] = median_likes
+	outputJSON['median_likes_with_images'] = median_likes_with_images
+	outputJSON['median_retweets'] = median_retweets
+	print("Median likes: ", median_likes)
+	print("Median likes with Images:", median_likes_with_images)
+	print("Median retweets: ",median_retweets)
+	
 
-	# fig1, ax1 = plt.subplots()
-	# ax1.set_title('Basic Plot')
-	# ax1.boxplot(likes)
-	# fig1.show()
-	outputJSON['median_likes_with_images'] = round(likesWithImages[int(tweetsWithImages/2)])
-	print("Median likes with Images:", round(likesWithImages[int(tweetsWithImages/2)]))
-	print("Median retweets: ", round(retweets[int(count/2)]))
-	outputJSON['median_retweets'] = round(retweets[int(count/2)])
+	percent_posts_w_img =  round(tweetsWithImages/(count + 1),5)
+	print("% of posts with images: ", percent_posts_w_img)
+	outputJSON['percent_posts_w_img'] = percent_posts_w_img
 
-	print("% of posts with images: ", round(tweetsWithImages/(count + 1),5))
-	outputJSON['PercentPostsWithImages'] = round(tweetsWithImages/count,5)
+	responded_to_v_self_posted = round(responseCount/(count - responseCount + 1),5)
+	print("(responded tweets : self posted tweets) ratio: ",responded_to_v_self_posted )
+	outputJSON['responded_to_v_self_posted'] = responded_to_v_self_posted
 
-	print("(responded tweets : self posted tweets) ratio: ", round(responseCount/(count - responseCount + 1),5))
-	outputJSON['respondedTo:selfPosted'] =  round(responseCount/(count - responseCount + 1),5)
+	print(outputJSON)
 	return outputJSON
 
 def getAccountInfo(screen_name):
@@ -323,6 +318,6 @@ def processAllAccounts():
 	for handle in handles:
 		getAccountInfo(handle)
 
-def generateGraph():
-	
+# def generateGraph():
+
 
