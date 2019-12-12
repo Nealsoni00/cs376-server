@@ -3,6 +3,13 @@
 > CS376 Final Web Project Server & Twitter Scraper
 > By Dylan Gleicher and Neal Soni
 
+### GITHUB REPOS:
+Front End: https://github.com/dgleiche/cs376-frontend
+
+Server & Scraper: https://github.com/Nealsoni00/cs376-server
+
+OLD Server, Front End, & Scraper: https://github.com/Nealsoni00/WebDev
+
 ## Python Web Scraper
 
 ### Setup
@@ -16,8 +23,8 @@ $ pip3 install -r reqirements.txt
 The three parts can be enabled and disabled in the "scrapeAccount.py" script:
 ```python
 	scrape = True # Disable to stop scraping from occuring
-    processs = True # Disable to stop post-porcessing from occuring
-    children = True # Disable to stop fetching children
+	processs = True # Disable to stop post-porcessing from occuring
+	children = True # Disable to stop fetching children
 ```
 
 The script is run using the following command: 
