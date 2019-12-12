@@ -6,11 +6,11 @@ import sys
 if __name__ == '__main__':
     #pass in the usernames of the account you want to download
 	
-    scrape = True
-    processs = True
-    children = True 
-
-    if scrape:
+	scrape = False
+	processs = True
+	children = False 
+	
+	if scrape:
 		for i in range(1,len(sys.argv)):
 			screen_name = sys.argv[i]
 			try: 							# MAKE THIS (screen_name, False, 200) IF YOU WANT IT TO SCRAPE FASTER
@@ -21,9 +21,10 @@ if __name__ == '__main__':
 	if process: 
 		# Process the data after it's been scraped 
 		processed = process.processAllAccounts()
-		unscrapedHandles = process.unscrapedHandles()
+		graph = process.generateGraph()
 		
 	if children: 
+		unscrapedHandles = process.unscrapedHandles()
 		# get children of account. 
 		for handle in unscrapedHandles:
 			try:
