@@ -186,11 +186,11 @@ def postProcess(screen_name, allTweets, userinfo):
 	print("there are " + str(count) + " tweets")
 	outputJSON["tweetCount"] = str(count)
 
-
-	print("(% Positive, % Neutral, % Negative): (", round(positiveTweets/count,5), round(neutralTweets/count, 5), round(negativeTweets/count, 5), ") tweets")
-	sentimentRatio =   {"positiveP" : round(positiveTweets/count,5),
-						"neutralP"  : round(neutralTweets/count, 5),
-						"negativeP" : round(negativeTweets/count, 5),
+	countP1 = count + 1
+	print("(% Positive, % Neutral, % Negative): (", round(positiveTweets/countP1,5), round(neutralTweets/countP1, 5), round(negativeTweets/countP1, 5), ") tweets")
+	sentimentRatio =   {"positiveP" : round(positiveTweets/countP1,5),
+						"neutralP"  : round(neutralTweets/countP1, 5),
+						"negativeP" : round(negativeTweets/countP1, 5),
 						"positiveC" : round(positiveTweets,5),
 						"neutralC"  : round(neutralTweets, 5),
 						"negativeC" : round(negativeTweets, 5)}
@@ -262,7 +262,7 @@ def postProcess(screen_name, allTweets, userinfo):
 	}
 
 	# ********** No Likes ***********
-	no_likes_percent = round(tweetsWithNoLikes/count, 5)
+	no_likes_percent = round(tweetsWithNoLikes/countP1, 5)
 	no_likes_count = round(tweetsWithNoLikes, 5)
 
 	print("% tweets with no likes:", no_likes_percent)
@@ -309,11 +309,15 @@ def getAccountInfo(screen_name):
 	# screen_name = screen_name.lower()
 	allTweets = firestore.getTweets(screen_name)
 	userinfo = firestore.getInfo(screen_name)
-	data = postProcess(screen_name, allTweets, userinfo)
+	data = {}
+	try:
+		data = postProcess(screen_name, allTweets, userinfo)
+	except:
+		print("********************UNABLE TO PROCESS ACCOUNT: *********************", screen_name)
 	firestore.saveProcessedData(screen_name, data)
 
 def processAllAccounts():
-	handles = firestore.getAllHandles()
+	handles = firestore.getAllHandles()[23:]
 	print("Processing All Handles: ", handles)
 	for handle in handles:
 		getAccountInfo(handle)

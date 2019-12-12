@@ -22,16 +22,19 @@ def getProcessedData(screen_name):
 	return db.collection(screen_name).document('processed').get().to_dict()
 
 def getTweets(screen_name):
-	allTweets = {}
-	pages = db.collection(screen_name).document('tweets').get().to_dict()
-	# print(pages)
-	for page in pages['pages']:
-		tweets = db.collection(screen_name).document('tweets').collection(page).document('data').get().to_dict()
-		# if page == '3':
-		# 	print(page, tweets)
-		for i in tweets:
-			allTweets[i] = tweets[i]
-	return allTweets
+	try: 
+		allTweets = {}
+		pages = db.collection(screen_name).document('tweets').get().to_dict()
+		# print(pages)
+		for page in pages['pages']:
+			tweets = db.collection(screen_name).document('tweets').collection(page).document('data').get().to_dict()
+			# if page == '3':
+			# 	print(page, tweets)
+			for i in tweets:
+				allTweets[i] = tweets[i]
+		return allTweets
+	except:
+		return {}
 
 def getInfo(screen_name):
 	info = db.collection(screen_name).document('info').get().to_dict()
