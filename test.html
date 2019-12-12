@@ -1,11 +1,36 @@
+<script src="https://d3js.org/d3.v3.js"></script>
+<script src="jsnetworkx.js"></script>
 
+<div id='demo-canvas' style='width:100%; height:100%'></div>
 
-<style>
-
-</style>
-
-<div id="fig_el5574450511336249560070563"></div>
+<!-- <div id="fig_el5574450511336249560070563"></div> -->
 <script>
+
+var G = new jsnx.Graph();
+var nodes = ['elonmusk', 'elonmusk', 'erdayastronaut', 'flcnhvy', 'teslaownerssv', 'justpaulinelol', 'tesla', 'tesla', 'dmc_ryan', 'teslaliving', 'f1elvis', 'benjamin_ho', 'narendramodi', 'narendramodi', 'anupampkher', 'spacex', 'spacex', 'orbitalatk', 'virgingalactic', 'detlefkroeze', 'amyinorbit', 'youtube', 'youtube', 'rosannapansino', 'jamescharles', 'mrbeastyt', 'hevesh5', 'jimmyfallon', 'jimmyfallon', 'fallontonight', 'markronson', 'neuro2343', 'evelynrobinson', 'erdayastronaut', 'erdayastronaut', 'elonmusk', 'theprimaldino', 'bnordhaug', 'rocketlab', 'nasa', 'nasa', 'moonpie', 'thebigm', 'martianmanish', 'google', 'billgates', 'billgates', 'potus44', 'alwaleed_talal', 'atul_gawande', 'sapinker', 'pewdiepie', 'pewdiepie', 'gfuelenergy', 'elonmusk', 'jack_septic_eye', 'outerminds', 'nytimes', 'nytimes', 'google', 'google', 'madebygoogle', 'ydserin', 'patrikrei', 'akashkumar404', 'juvconsulting', 'juvconsulting', 'ziadtheactivist', 'zontziry', 'time2ryot', 'onedsgns', 'ziadtheactivist', 'ziadtheactivist', 'blairimani', 'hadiya_afzal', 'time2ryot', 'aaminasdfghjkl', 'twitter', 'twitter', 'elias_mcfc', 'imactuallyivy', 'sketchesbyboze', 'probxbly']
+var edges = [['elonmusk', 'elonmusk'], ['elonmusk', 'erdayastronaut'], ['elonmusk', 'flcnhvy'], ['elonmusk', 'teslaownerssv'], ['elonmusk', 'justpaulinelol'], ['tesla', 'tesla'], ['tesla', 'dmc_ryan'], ['tesla', 'teslaliving'], ['tesla', 'f1elvis'], ['tesla', 'benjamin_ho'], ['narendramodi', 'narendramodi'], ['narendramodi', 'anupampkher'], ['spacex', 'spacex'], ['spacex', 'orbitalatk'], ['spacex', 'virgingalactic'], ['spacex', 'detlefkroeze'], ['spacex', 'amyinorbit'], ['youtube', 'youtube'], ['youtube', 'rosannapansino'], ['youtube', 'jamescharles'], ['youtube', 'mrbeastyt'], ['youtube', 'hevesh5'], ['jimmyfallon', 'jimmyfallon'], ['jimmyfallon', 'fallontonight'], ['jimmyfallon', 'markronson'], ['jimmyfallon', 'neuro2343'], ['jimmyfallon', 'evelynrobinson'], ['erdayastronaut', 'erdayastronaut'], ['erdayastronaut', 'elonmusk'], ['erdayastronaut', 'theprimaldino'], ['erdayastronaut', 'bnordhaug'], ['erdayastronaut', 'rocketlab'], ['nasa', 'nasa'], ['nasa', 'moonpie'], ['nasa', 'thebigm'], ['nasa', 'martianmanish'], ['nasa', 'google'], ['billgates', 'billgates'], ['billgates', 'potus44'], ['billgates', 'alwaleed_talal'], ['billgates', 'atul_gawande'], ['billgates', 'sapinker'], ['pewdiepie', 'pewdiepie'], ['pewdiepie', 'gfuelenergy'], ['pewdiepie', 'elonmusk'], ['pewdiepie', 'jack_septic_eye'], ['pewdiepie', 'outerminds'], ['nytimes', 'nytimes'], ['google', 'google'], ['google', 'madebygoogle'], ['google', 'ydserin'], ['google', 'patrikrei'], ['google', 'akashkumar404'], ['juvconsulting', 'juvconsulting'], ['juvconsulting', 'ziadtheactivist'], ['juvconsulting', 'zontziry'], ['juvconsulting', 'time2ryot'], ['juvconsulting', 'onedsgns'], ['ziadtheactivist', 'ziadtheactivist'], ['ziadtheactivist', 'blairimani'], ['ziadtheactivist', 'hadiya_afzal'], ['ziadtheactivist', 'time2ryot'], ['ziadtheactivist', 'aaminasdfghjkl'], ['twitter', 'twitter'], ['twitter', 'elias_mcfc'], ['twitter', 'imactuallyivy'], ['twitter', 'sketchesbyboze'], ['twitter', 'probxbly']]
+
+
+for (node of nodes) {
+  G.addNode(node, {count: 12});
+}
+// G.addNode('neal soni', {count: 8});
+// G.addNode('neal soni3', {count: 8});
+// G.addNode('neal soni4', {count: 8});
+G.addNode(3, {count: 15});
+G.addEdgesFrom(edges);
+ 
+jsnx.draw(G, {
+  element: '#demo-canvas',
+  withLabels: true,
+  nodeAttr: {
+    r: function(d) {
+      // `d` has the properties `node`, `data` and `G`
+      return d.data.count;
+    }
+  }
+});
+
 function mpld3_load_lib(url, callback){
   var s = document.createElement('script');
   s.src = url;

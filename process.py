@@ -246,6 +246,7 @@ def postProcess(screen_name, allTweets, userinfo):
 	tweetRespondedToUsersKeys.sort(key=lambda x: int(tweetRespondedToUsers[x][1][0]["user"]["followers"]), reverse=True)
 	topFiveMostPopularRespondingTo = tweetRespondedToUsersKeys[:5]
 	topFivePopularReversed = topFiveMostPopularRespondingTo[::-1]
+	outputJSON["top_five_popular_responded_to"] = topFivePopularReversed
 	print("Top five most popular people responded to: ", topFiveMostPopularRespondingTo)
 	responded_popular = graphs.createHorizontalSingleBarGraph(
 		"responded_popular",
@@ -292,7 +293,6 @@ def postProcess(screen_name, allTweets, userinfo):
 	print("Median likes with Images:", median_likes_with_images)
 	print("Median retweets: ",median_retweets)
 	
-
 	percent_posts_w_img =  round(tweetsWithImages/(count + 1),5)
 	print("% of posts with images: ", percent_posts_w_img)
 	outputJSON['percent_posts_w_img'] = percent_posts_w_img
@@ -318,6 +318,22 @@ def processAllAccounts():
 	for handle in handles:
 		getAccountInfo(handle)
 
-# def generateGraph():
+def generateGraph():
+	handles = firestore.getAllHandles()
+	nodes = []
+	edges = []
+	for handle in handles:
+		nodes.append(handle.lower())
+		processedData = firestore.getProcessedData(handle)
+		connectedTo = processedData['top_five_responded_to']
+		for edge in connectedTo:
+			lowerEdge = edge.lower()
+			if not edge in nodes or lowerEdge in nodes:
+				nodes.append(edge.lower())
+			edges.append([handle.lower(), lowerEdge])
+	print(edges)
+	print(nodes)
+
+
 
 
