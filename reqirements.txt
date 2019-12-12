@@ -1,0 +1,5 @@
+tweepy
+numpy
+cv2
+colorgram.py
+PIL
