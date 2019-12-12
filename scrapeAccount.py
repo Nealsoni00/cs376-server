@@ -18,25 +18,25 @@ if __name__ == '__main__':
 			except:
 				print("*********** ERROR SCRAPING DATA FOR: ", screen_name, "*****************")
 
-	# if processs: 
-	# 	# Process the data after it's been scraped
-	# 	# for i in range(1,len(sys.argv)):
-	# 	# 	screen_name = sys.argv[i]
-	# 	# 	try: 							# MAKE THIS (screen_name, False, 200) IF YOU WANT IT TO SCRAPE FASTER
-	# 	# 		allData = scraper.getAccountInfo(screen_name)
-	# 	# 	except:
-	# 	# 		print("*********** ERROR Processing Data DATA FOR: ", screen_name, "*****************")
+	if processs: 
+		# Process the data after it's been scraped
+		# for i in range(1,len(sys.argv)):
+		# 	screen_name = sys.argv[i]
+		# 	try: 							# MAKE THIS (screen_name, False, 200) IF YOU WANT IT TO SCRAPE FASTER
+		# 		allData = scraper.getAccountInfo(screen_name)
+		# 	except:
+		# 		print("*********** ERROR Processing Data DATA FOR: ", screen_name, "*****************")
  
-	# 	processed = process.processAllAccounts()
-	# 	graph = process.generateGraph()
+		processed = process.processAllAccounts()
+		graph = process.generateGraph()
 		
-	# if children: 
-	# 	unscrapedHandles = process.unscrapedHandles()
-	# 	# get children of account. 
-	# 	for handle in unscrapedHandles:
-	# 		try:
-	# 			allData = scraper.getAccountData(handle, False, 1000) # smaller so it doesn't take too long
-	# 		except:
-	# 			print("************** ERROR SCRAPING DATA FOR: ", screen_name, "*****************")
+	if children: 
+		unscrapedHandles = process.unscrapedHandles()
+		# get children of account. 
+		for handle in unscrapedHandles:
+			try:
+				allData = scraper.getAccountData(handle, False, 1000) # smaller so it doesn't take too long
+			except:
+				print("************** ERROR SCRAPING DATA FOR: ", screen_name, "*****************")
 
-	# 	processed = process.processAllAccounts()
+		processed = process.processAllAccounts()
