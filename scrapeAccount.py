@@ -12,7 +12,7 @@ if __name__ == '__main__':
 		# except:
 		# 	print("*********** ERROR SCRAPING DATA FOR: ", screen_name, "*****************")
 	# try:
-	# processed = process.processAllAccounts()
+	processed = process.processAllAccounts()
 	process.generateGraph()
 	# except:
 	# 	pass

@@ -16,6 +16,8 @@ def saveTweetPages(screen_name, names):
 	db.collection(screen_name).document('tweets').set({'pages': names})
 def saveProcessedData(screen_name, data):
 	db.collection(screen_name).document('processed').set(data)
+def saveGraph(data):
+	db.collection('TwitterNetworkGraph').document('graph').set(data)
 def getProcessedData(screen_name):
 	return db.collection(screen_name).document('processed').get().to_dict()
 
