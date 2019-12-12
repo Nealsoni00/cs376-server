@@ -317,22 +317,43 @@ def processAllAccounts():
 	print("Processing All Handles: ", handles)
 	for handle in handles:
 		getAccountInfo(handle)
+def Remove(duplicate): 
+    final_list = [] 
+    for num in duplicate: 
+        if num not in final_list: 
+            final_list.append(num) 
+    return final_list 
 
 def generateGraph():
 	handles = firestore.getAllHandles()
-	nodes = []
+	nodesArray = []
+	nodesMap = []
 	edges = []
+	nodesCount = 0
+
+	def addNode(edge, count):
+		if not edge in nodesArray or not edge.lower() in nodesArray:
+			nodesArray.append(edge.lower())
+			nodesMap.append({'id': edge.lower(), 'name': edge.lower()})
+			count += 1
+		return count
+	
 	for handle in handles:
-		nodes.append(handle.lower())
+		print("HANDLE: ", handle)
+		# handleID = nodesCount
+		nodesCount = addNode(handle, nodesCount)
 		processedData = firestore.getProcessedData(handle)
-		connectedTo = processedData['top_five_responded_to']
-		for edge in connectedTo:
-			lowerEdge = edge.lower()
-			if not edge in nodes or lowerEdge in nodes:
-				nodes.append(edge.lower())
-			edges.append([handle.lower(), lowerEdge])
+		try: 
+			connectedTo = processedData['top_five_responded_to']
+			for edge in connectedTo:
+				nodesCount = addNode(edge, nodesCount)
+				edges.append({'sid': handle.lower(), 'tid': edge.lower(), '_color': 'red' })
+		except:
+			print("CAN't get data for handle: ", handle)
+	nodesMap = Remove(nodesMap)
+	firestore.saveGraph({'nodes': nodesMap, 'edges': edges})
 	print(edges)
-	print(nodes)
+	print(nodesMap)
 
 
 
