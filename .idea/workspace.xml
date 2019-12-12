@@ -4,7 +4,8 @@
     <list default="true" id="405c7498-c483-46a7-8ed5-cb9f33e3cc10" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/process.py" beforeDir="false" afterPath="$PROJECT_DIR$/process.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.html" beforeDir="false" afterPath="$PROJECT_DIR$/test.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scrapeAccount.py" beforeDir="false" afterPath="$PROJECT_DIR$/scrapeAccount.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/scraper.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -59,7 +60,7 @@
       <option name="presentableId" value="Default" />
       <updated>1576036797673</updated>
       <workItem from="1576036798923" duration="1266000" />
-      <workItem from="1576087072928" duration="1147000" />
+      <workItem from="1576087072928" duration="1746000" />
     </task>
     <servers />
   </component>
